@@ -45,9 +45,6 @@ so each module's tutorial can point you at the right spot.
 > finishes, the PC **reboots once on its own**; **log in** and the apps install on a progress screen.
 > Edit `configuration.dsc.yaml` to change that list (see the `apps` module).
 
-> ⚠️ **Keep your repo free of secrets:** module snippets use **placeholders** (e.g. `__USERNAME__`)
-> — never commit real passwords.
-
 ## Repository layout
 
 ```
