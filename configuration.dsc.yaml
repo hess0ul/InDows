@@ -1,4 +1,4 @@
-# InDows (public) - base "essentials" catalog.
+# InDows - base "essentials" catalog.
 #
 # These are the few apps the base installs at first logon (via bootstrap.ps1). Keep it minimal;
 # add your own below. Find package ids with:  winget search <name>   or   winget show <id>

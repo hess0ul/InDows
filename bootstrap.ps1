@@ -1,4 +1,4 @@
-# InDows (public) - first-logon bootstrap. TWO-STAGE, generic.
+# InDows - first-logon bootstrap. TWO-STAGE, generic.
 #
 # Installs the apps listed in configuration.dsc.yaml at first logon, with a visible progress screen.
 #
