@@ -1,4 +1,4 @@
-# InDows (public)
+# InDows
 
 A clean, **declarative** Windows 11 install you write to a USB stick once and let run — no manual
 tweaking afterwards. This is the **generic** edition: a sane, debloated Windows 11 base that contains
