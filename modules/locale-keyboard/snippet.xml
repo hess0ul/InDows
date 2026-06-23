@@ -1,0 +1,22 @@
+<!-- ============================================================================
+     InDows module: locale-keyboard
+     Sets language, region (formats) and keyboard layout automatically, so the
+     first-run language/keyboard screens are skipped.
+
+     WHERE: settings pass="oobeSystem" - ADD this whole component.
+     ANCHOR (a comment in the base) named:   [InDows:module] oobe-international
+
+     REPLACE the four values (see README.md for the code tables). The example below
+     is English (US) with a US keyboard.
+
+       InputLocale  = keyboard layout(s), as "langID:layoutID" (or a BCP-47 like en-US)
+       SystemLocale = language for non-Unicode programs (e.g. en-US)
+       UILanguage   = Windows display language (a language pack must exist in the image)
+       UserLocale   = number/date/currency formats (e.g. en-US)
+     ============================================================================ -->
+<component name="Microsoft-Windows-International-Core" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+    <InputLocale>0409:00000409</InputLocale>
+    <SystemLocale>en-US</SystemLocale>
+    <UILanguage>en-US</UILanguage>
+    <UserLocale>en-US</UserLocale>
+</component>

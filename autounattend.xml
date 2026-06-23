@@ -1,0 +1,584 @@
+<?xml version="1.0" encoding="utf-8"?>
+<unattend xmlns="urn:schemas-microsoft-com:unattend" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State">
+	<!--https://schneegans.de/windows/unattend-generator/?LanguageMode=Interactive&PEMode=Default&WindowsEditionMode=Generic&WindowsEdition=pro&ProcessorArchitecture=amd64&BypassRequirementsCheck=true&HidePowerShellWindows=true&ComputerNameMode=Random&TimeZoneMode=Implicit&UserAccountMode=InteractiveLocal&PasswordExpirationMode=Unlimited&LockoutMode=Default&HideFiles=Hidden&TaskbarSearch=Box&TaskbarIconsMode=Default&StartTilesMode=Default&StartPinsMode=Default&CoreIsolationMode=Enabled&EffectsMode=Default&DesktopIconsMode=Default&StartFoldersMode=Default&WifiMode=Interactive&ExpressSettings=DisableAll&LockKeysMode=Skip&StickyKeysMode=Default&ColorMode=Default&WallpaperMode=Default&LockScreenMode=Default&Remove3DViewer=true&RemoveBingSearch=true&RemoveClipchamp=true&RemoveCopilot=true&RemoveCortana=true&RemoveDevHome=true&RemoveFamily=true&RemoveFeedbackHub=true&RemoveGetHelp=true&RemoveInternetExplorer=true&RemoveMailCalendar=true&RemoveMaps=true&RemoveMathInputPanel=true&RemoveMixedReality=true&RemoveZuneVideo=true&RemoveNews=true&RemoveOffice365=true&RemoveOneDrive=true&RemoveOneNote=true&RemoveOneSync=true&RemoveOutlook=true&RemovePaint3D=true&RemovePeople=true&RemovePowerAutomate=true&RemovePowerShell2=true&RemovePowerShellISE=true&RemoveQuickAssist=true&RemoveRecall=true&RemoveSkype=true&RemoveSolitaire=true&RemoveStepsRecorder=true&RemoveStickyNotes=true&RemoveTeams=true&RemoveGetStarted=true&RemoveToDo=true&RemoveWallet=true&RemoveWeather=true&RemoveFaxAndScan=true&RemoveWindowsMediaPlayer=true&RemoveWordPad=true&RemoveYourPhone=true&AppLockerMode=Skip-->
+	<settings pass="offlineServicing"></settings>
+	<settings pass="windowsPE">
+		<component name="Microsoft-Windows-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+			<UserData>
+				<ProductKey>
+					<Key>VK7JG-NPHTM-C97JM-9MPGT-3V66T</Key>
+					<WillShowUI>OnError</WillShowUI>
+				</ProductKey>
+				<AcceptEula>true</AcceptEula>
+			</UserData>
+			<UseConfigurationSet>false</UseConfigurationSet>
+			<RunSynchronous>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>1</Order>
+					<Path>reg.exe add "HKLM\SYSTEM\Setup\LabConfig" /v BypassTPMCheck /t REG_DWORD /d 1 /f</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>2</Order>
+					<Path>reg.exe add "HKLM\SYSTEM\Setup\LabConfig" /v BypassSecureBootCheck /t REG_DWORD /d 1 /f</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>3</Order>
+					<Path>reg.exe add "HKLM\SYSTEM\Setup\LabConfig" /v BypassRAMCheck /t REG_DWORD /d 1 /f</Path>
+				</RunSynchronousCommand>
+			</RunSynchronous>
+		</component>
+	</settings>
+	<settings pass="generalize"></settings>
+	<settings pass="specialize">
+		<!-- [InDows:module] specialize-shell-setup -->
+		<component name="Microsoft-Windows-Deployment" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+			<RunSynchronous>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>1</Order>
+					<Path>powershell.exe -WindowStyle "Hidden" -NoProfile -Command "$xml = [xml]::new(); $xml.Load('C:\Windows\Panther\unattend.xml'); $sb = [scriptblock]::Create( $xml.unattend.Extensions.ExtractScript ); Invoke-Command -ScriptBlock $sb -ArgumentList $xml;"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>2</Order>
+					<Path>powershell.exe -WindowStyle "Hidden" -ExecutionPolicy "Unrestricted" -NoProfile -File "C:\Windows\Setup\Scripts\Specialize.ps1"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>3</Order>
+					<Path>reg.exe load "HKU\DefaultUser" "C:\Users\Default\NTUSER.DAT"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>4</Order>
+					<Path>powershell.exe -WindowStyle "Hidden" -ExecutionPolicy "Unrestricted" -NoProfile -File "C:\Windows\Setup\Scripts\DefaultUser.ps1"</Path>
+				</RunSynchronousCommand>
+				<RunSynchronousCommand wcm:action="add">
+					<Order>5</Order>
+					<Path>reg.exe unload "HKU\DefaultUser"</Path>
+				</RunSynchronousCommand>
+			
+				<!-- [InDows:module] specialize-scripts -->
+				<!-- [InDows:module] default-user-scripts -->
+			</RunSynchronous>
+		</component>
+	</settings>
+	<settings pass="auditSystem"></settings>
+	<settings pass="auditUser"></settings>
+	<settings pass="oobeSystem">
+		<!-- [InDows:module] oobe-international -->
+		<component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+			<OOBE>
+				<ProtectYourPC>3</ProtectYourPC>
+				<HideEULAPage>true</HideEULAPage>
+				<HideWirelessSetupInOOBE>false</HideWirelessSetupInOOBE>
+				<HideOnlineAccountScreens>true</HideOnlineAccountScreens>
+			</OOBE>
+			<!-- [InDows:module] account -->
+			<FirstLogonCommands>
+				<SynchronousCommand wcm:action="add">
+					<Order>1</Order>
+					<CommandLine>powershell.exe -WindowStyle "Hidden" -ExecutionPolicy "Unrestricted" -NoProfile -File "C:\Windows\Setup\Scripts\FirstLogon.ps1"</CommandLine>
+				</SynchronousCommand>
+							<SynchronousCommand wcm:action="add">
+					<Order>2</Order>
+					<CommandLine>powershell.exe -WindowStyle "Hidden" -ExecutionPolicy "Unrestricted" -NoProfile -File "C:\Windows\Setup\Scripts\bootstrap.ps1"</CommandLine>
+				</SynchronousCommand>
+				<!-- [InDows:module] first-logon-scripts -->
+			</FirstLogonCommands>
+		</component>
+	</settings>
+	<Extensions xmlns="https://schneegans.de/windows/unattend-generator/">
+		<Build>
+			<Commit>
+				<Hash>3de37dc6bc9bb1f63aeac7aa137c84c1b30b3b28</Hash>
+				<GitHubUrl>https://github.com/cschneegans/unattend-generator/commit/3de37dc6bc9bb1f63aeac7aa137c84c1b30b3b28</GitHubUrl>
+			</Commit>
+		</Build>
+		<ExtractScript>
+param(
+    [xml] $Document
+);
+
+foreach( $file in $Document.unattend.Extensions.File ) {
+    $path = [System.Environment]::ExpandEnvironmentVariables( $file.GetAttribute( 'path' ) );
+    mkdir -Path( $path | Split-Path -Parent ) -ErrorAction 'SilentlyContinue';
+    $encoding = switch( [System.IO.Path]::GetExtension( $path ) ) {
+        { $_ -in '.ps1', '.xml' } { [System.Text.Encoding]::UTF8; }
+        { $_ -in '.reg', '.vbs', '.js' } { [System.Text.UnicodeEncoding]::new( $false, $true ); }
+        default { [System.Text.Encoding]::Default; }
+    };
+    $bytes = $encoding.GetPreamble() + $encoding.GetBytes( $file.InnerText.Trim() );
+    [System.IO.File]::WriteAllBytes( $path, $bytes );
+}
+		</ExtractScript>
+		<File path="C:\Windows\Setup\Scripts\RemovePackages.ps1">
+$selectors = @(
+	'Microsoft.Microsoft3DViewer';
+	'Microsoft.BingSearch';
+	'Clipchamp.Clipchamp';
+	'Microsoft.Copilot';
+	'Microsoft.549981C3F5F10';
+	'Microsoft.Windows.DevHome';
+	'MicrosoftCorporationII.MicrosoftFamily';
+	'Microsoft.WindowsFeedbackHub';
+	'Microsoft.GetHelp';
+	'Microsoft.Getstarted';
+	'microsoft.windowscommunicationsapps';
+	'Microsoft.WindowsMaps';
+	'Microsoft.MixedReality.Portal';
+	'Microsoft.BingNews';
+	'Microsoft.MicrosoftOfficeHub';
+	'Microsoft.Office.OneNote';
+	'Microsoft.OutlookForWindows';
+	'Microsoft.MSPaint';
+	'Microsoft.People';
+	'Microsoft.PowerAutomateDesktop';
+	'MicrosoftCorporationII.QuickAssist';
+	'Microsoft.SkypeApp';
+	'Microsoft.MicrosoftSolitaireCollection';
+	'Microsoft.MicrosoftStickyNotes';
+	'MicrosoftTeams';
+	'MSTeams';
+	'Microsoft.Todos';
+	'Microsoft.Wallet';
+	'Microsoft.BingWeather';
+	'Microsoft.YourPhone';
+	'Microsoft.ZuneVideo';
+);
+$getCommand = {
+  Get-AppxProvisionedPackage -Online;
+};
+$filterCommand = {
+  $_.DisplayName -eq $selector;
+};
+$removeCommand = {
+  [CmdletBinding()]
+  param(
+    [Parameter( Mandatory, ValueFromPipeline )]
+    $InputObject
+  );
+  process {
+    $InputObject | Remove-AppxProvisionedPackage -AllUsers -Online -ErrorAction 'Continue';
+  }
+};
+$type = 'Package';
+$logfile = 'C:\Windows\Setup\Scripts\RemovePackages.log';
+&amp; {
+	$installed = &amp; $getCommand;
+	foreach( $selector in $selectors ) {
+		$result = [ordered] @{
+			Selector = $selector;
+		};
+		$found = $installed | Where-Object -FilterScript $filterCommand;
+		if( $found ) {
+			$result.Output = $found | &amp; $removeCommand;
+			if( $? ) {
+				$result.Message = "$type removed.";
+			} else {
+				$result.Message = "$type not removed.";
+				$result.Error = $Error[0];
+			}
+		} else {
+			$result.Message = "$type not installed.";
+		}
+		$result | ConvertTo-Json -Depth 3 -Compress;
+	}
+} *&gt;&amp;1 | Out-String -Width 1KB -Stream &gt;&gt; $logfile;
+		</File>
+		<File path="C:\Windows\Setup\Scripts\RemoveCapabilities.ps1">
+$selectors = @(
+	'Print.Fax.Scan';
+	'Browser.InternetExplorer';
+	'MathRecognizer';
+	'OneCoreUAP.OneSync';
+	'Microsoft.Windows.PowerShell.ISE';
+	'App.Support.QuickAssist';
+	'App.StepsRecorder';
+	'Media.WindowsMediaPlayer';
+	'Microsoft.Windows.WordPad';
+);
+$getCommand = {
+  Get-WindowsCapability -Online | Where-Object -Property 'State' -NotIn -Value @(
+    'NotPresent';
+    'Removed';
+  );
+};
+$filterCommand = {
+  ($_.Name -split '~')[0] -eq $selector;
+};
+$removeCommand = {
+  [CmdletBinding()]
+  param(
+    [Parameter( Mandatory, ValueFromPipeline )]
+    $InputObject
+  );
+  process {
+    $InputObject | Remove-WindowsCapability -Online -ErrorAction 'Continue';
+  }
+};
+$type = 'Capability';
+$logfile = 'C:\Windows\Setup\Scripts\RemoveCapabilities.log';
+&amp; {
+	$installed = &amp; $getCommand;
+	foreach( $selector in $selectors ) {
+		$result = [ordered] @{
+			Selector = $selector;
+		};
+		$found = $installed | Where-Object -FilterScript $filterCommand;
+		if( $found ) {
+			$result.Output = $found | &amp; $removeCommand;
+			if( $? ) {
+				$result.Message = "$type removed.";
+			} else {
+				$result.Message = "$type not removed.";
+				$result.Error = $Error[0];
+			}
+		} else {
+			$result.Message = "$type not installed.";
+		}
+		$result | ConvertTo-Json -Depth 3 -Compress;
+	}
+} *&gt;&amp;1 | Out-String -Width 1KB -Stream &gt;&gt; $logfile;
+		</File>
+		<File path="C:\Windows\Setup\Scripts\RemoveFeatures.ps1">
+$selectors = @(
+	'MicrosoftWindowsPowerShellV2Root';
+	'Recall';
+);
+$getCommand = {
+  Get-WindowsOptionalFeature -Online | Where-Object -Property 'State' -NotIn -Value @(
+    'Disabled';
+    'DisabledWithPayloadRemoved';
+  );
+};
+$filterCommand = {
+  $_.FeatureName -eq $selector;
+};
+$removeCommand = {
+  [CmdletBinding()]
+  param(
+    [Parameter( Mandatory, ValueFromPipeline )]
+    $InputObject
+  );
+  process {
+    $InputObject | Disable-WindowsOptionalFeature -Online -Remove -NoRestart -ErrorAction 'Continue';
+  }
+};
+$type = 'Feature';
+$logfile = 'C:\Windows\Setup\Scripts\RemoveFeatures.log';
+&amp; {
+	$installed = &amp; $getCommand;
+	foreach( $selector in $selectors ) {
+		$result = [ordered] @{
+			Selector = $selector;
+		};
+		$found = $installed | Where-Object -FilterScript $filterCommand;
+		if( $found ) {
+			$result.Output = $found | &amp; $removeCommand;
+			if( $? ) {
+				$result.Message = "$type removed.";
+			} else {
+				$result.Message = "$type not removed.";
+				$result.Error = $Error[0];
+			}
+		} else {
+			$result.Message = "$type not installed.";
+		}
+		$result | ConvertTo-Json -Depth 3 -Compress;
+	}
+} *&gt;&amp;1 | Out-String -Width 1KB -Stream &gt;&gt; $logfile;
+		</File>
+		<File path="C:\Windows\Setup\Scripts\Specialize.ps1">
+$scripts = @(
+	{
+		Remove-Item -LiteralPath 'Registry::HKLM\Software\Microsoft\WindowsUpdate\Orchestrator\UScheduler_Oobe\DevHomeUpdate' -Force -ErrorAction 'SilentlyContinue';
+	};
+	{
+		Remove-Item -LiteralPath 'C:\Users\Default\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\OneDrive.lnk', 'C:\Windows\System32\OneDriveSetup.exe', 'C:\Windows\SysWOW64\OneDriveSetup.exe' -ErrorAction 'Continue';
+	};
+	{
+		Remove-Item -LiteralPath 'Registry::HKLM\Software\Microsoft\WindowsUpdate\Orchestrator\UScheduler_Oobe\OutlookUpdate' -Force -ErrorAction 'SilentlyContinue';
+	};
+	{
+		reg.exe add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications" /v ConfigureChatAutoInstall /t REG_DWORD /d 0 /f;
+	};
+	{
+		&amp; 'C:\Windows\Setup\Scripts\RemovePackages.ps1';
+	};
+	{
+		&amp; 'C:\Windows\Setup\Scripts\RemoveCapabilities.ps1';
+	};
+	{
+		&amp; 'C:\Windows\Setup\Scripts\RemoveFeatures.ps1';
+	};
+	{
+		net.exe accounts /maxpwage:UNLIMITED;
+	};
+);
+
+&amp; {
+  [float] $complete = 0;
+  [float] $increment = 100 / $scripts.Count;
+  foreach( $script in $scripts ) {
+    Write-Progress -Id 0 -Activity 'Running scripts to customize your Windows installation. Do not close this window.' -PercentComplete $complete;
+    '*** Will now execute command &#xAB;{0}&#xBB;.' -f $(
+      $script.ToString().Trim() -replace '\s+', ' ' -replace '^(.{99})(.+)$', '$1&#x2026;';
+    );
+    $start = [datetime]::Now;
+    &amp; $script;
+    '*** Finished executing command after {0:0} ms.' -f [datetime]::Now.Subtract( $start ).TotalMilliseconds;
+    "`r`n" * 3;
+    $complete += $increment;
+  }
+} *&gt;&amp;1 | Out-String -Width 1KB -Stream &gt;&gt; "C:\Windows\Setup\Scripts\Specialize.log";
+		</File>
+		<File path="C:\Windows\Setup\Scripts\UserOnce.ps1">
+$scripts = @(
+	{
+		Get-AppxPackage -Name 'Microsoft.Windows.Ai.Copilot.Provider' | Remove-AppxPackage;
+	};
+);
+
+&amp; {
+  [float] $complete = 0;
+  [float] $increment = 100 / $scripts.Count;
+  foreach( $script in $scripts ) {
+    Write-Progress -Id 0 -Activity 'Running scripts to configure this user account. Do not close this window.' -PercentComplete $complete;
+    '*** Will now execute command &#xAB;{0}&#xBB;.' -f $(
+      $script.ToString().Trim() -replace '\s+', ' ' -replace '^(.{99})(.+)$', '$1&#x2026;';
+    );
+    $start = [datetime]::Now;
+    &amp; $script;
+    '*** Finished executing command after {0:0} ms.' -f [datetime]::Now.Subtract( $start ).TotalMilliseconds;
+    "`r`n" * 3;
+    $complete += $increment;
+  }
+} *&gt;&amp;1 | Out-String -Width 1KB -Stream &gt;&gt; "$env:TEMP\UserOnce.log";
+		</File>
+		<File path="C:\Windows\Setup\Scripts\DefaultUser.ps1">
+$scripts = @(
+	{
+		reg.exe add "HKU\DefaultUser\Software\Policies\Microsoft\Windows\WindowsCopilot" /v TurnOffWindowsCopilot /t REG_DWORD /d 1 /f;
+	};
+	{
+		reg.exe add "HKU\DefaultUser\Software\Microsoft\Internet Explorer\LowRegistry\Audio\PolicyConfig\PropertyStore" /f;
+	};
+	{
+		Remove-ItemProperty -LiteralPath 'Registry::HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Run' -Name 'OneDriveSetup' -Force -ErrorAction 'Continue';
+	};
+	{
+		reg.exe add "HKU\DefaultUser\Software\Microsoft\Windows\CurrentVersion\RunOnce" /v "UnattendedSetup" /t REG_SZ /d "powershell.exe -WindowStyle \""Hidden\"" -ExecutionPolicy \""Unrestricted\"" -NoProfile -File \""C:\Windows\Setup\Scripts\UserOnce.ps1\""" /f;
+	};
+);
+
+&amp; {
+  [float] $complete = 0;
+  [float] $increment = 100 / $scripts.Count;
+  foreach( $script in $scripts ) {
+    Write-Progress -Id 0 -Activity 'Running scripts to modify the default user&#x2019;&#x2019;s registry hive. Do not close this window.' -PercentComplete $complete;
+    '*** Will now execute command &#xAB;{0}&#xBB;.' -f $(
+      $script.ToString().Trim() -replace '\s+', ' ' -replace '^(.{99})(.+)$', '$1&#x2026;';
+    );
+    $start = [datetime]::Now;
+    &amp; $script;
+    '*** Finished executing command after {0:0} ms.' -f [datetime]::Now.Subtract( $start ).TotalMilliseconds;
+    "`r`n" * 3;
+    $complete += $increment;
+  }
+} *&gt;&amp;1 | Out-String -Width 1KB -Stream &gt;&gt; "C:\Windows\Setup\Scripts\DefaultUser.log";
+		</File>
+		<File path="C:\Windows\Setup\Scripts\FirstLogon.ps1">
+$scripts = @(
+	{
+		Remove-Item -LiteralPath @(
+		  'C:\Windows\Panther\unattend.xml';
+		  'C:\Windows\Panther\unattend-original.xml';
+		  'C:\Windows\Setup\Scripts\Wifi.xml';
+		) -Force -ErrorAction 'SilentlyContinue' -Verbose;
+	};
+);
+
+&amp; {
+  [float] $complete = 0;
+  [float] $increment = 100 / $scripts.Count;
+  foreach( $script in $scripts ) {
+    Write-Progress -Id 0 -Activity 'Running scripts to finalize your Windows installation. Do not close this window.' -PercentComplete $complete;
+    '*** Will now execute command &#xAB;{0}&#xBB;.' -f $(
+      $script.ToString().Trim() -replace '\s+', ' ' -replace '^(.{99})(.+)$', '$1&#x2026;';
+    );
+    $start = [datetime]::Now;
+    &amp; $script;
+    '*** Finished executing command after {0:0} ms.' -f [datetime]::Now.Subtract( $start ).TotalMilliseconds;
+    "`r`n" * 3;
+    $complete += $increment;
+  }
+} *&gt;&amp;1 | Out-String -Width 1KB -Stream &gt;&gt; "C:\Windows\Setup\Scripts\FirstLogon.log";
+		</File>
+		<File path="C:\Windows\Setup\Scripts\bootstrap.ps1"><![CDATA[
+# InDows (public) - first-logon bootstrap. TWO-STAGE, generic.
+#
+# Installs the apps listed in configuration.dsc.yaml at first logon, with a visible progress screen.
+#
+# WHY TWO STAGES: winget is not ready yet while FirstLogonCommands run; it works fine in an
+# established session. So STAGE 1 registers a task and reboots; STAGE 2 (next logon) installs the
+# apps, then cleans up. Assumes a VANILLA Windows 11 ISO (nothing to undo about Windows Update).
+# No auto-logon: after the automatic reboot, just log in once and the install runs on its own.
+#
+# Target: Windows PowerShell 5.1. Runs elevated. UI text is ASCII-only (avoid console mojibake).
+
+param([switch]$Stage2)
+
+$ErrorActionPreference = 'Continue'
+$dir        = 'C:\Windows\Setup\Scripts'
+$log        = Join-Path $dir 'InDows-bootstrap.log'
+$configPath = Join-Path $dir 'configuration.dsc.yaml'
+$selfPath   = Join-Path $dir 'bootstrap.ps1'
+$taskName   = 'InDows-install'
+
+function Log([string]$m)  { "{0}  {1}" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }
+function Step([string]$m) { Write-Host ''; Write-Host "// $m //" -ForegroundColor Cyan;     Log "STEP: $m" }
+function Ok([string]$m)   { Write-Host "    \\ $m \\"            -ForegroundColor Green;    Log "OK: $m" }
+function Fail([string]$m) { Write-Host "    !! $m !!"            -ForegroundColor Red;      Log "FAIL: $m" }
+function Note([string]$m) { Write-Host "    $m"                  -ForegroundColor DarkGray; Log $m }
+function Wait-Key {
+    # Keep this window open so the summary stays readable; close on ANY key (Enter, Esc, ...).
+    Write-Host ''
+    Write-Host "  Logs are saved to: $log" -ForegroundColor DarkGray
+    Write-Host '  Press any key to exit...'  -ForegroundColor Yellow
+    try { [void][System.Console]::ReadKey($true) }
+    catch { try { [void]$Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown') } catch { Start-Sleep -Seconds 60 } }
+}
+
+function Get-Winget {
+    # The REAL package binary, NOT the WindowsApps App Execution Alias (mangles args at first logon).
+    $p = Get-AppxPackage -Name 'Microsoft.DesktopAppInstaller' -ErrorAction SilentlyContinue |
+         Sort-Object { try { [version]$_.Version } catch { [version]'0.0' } } | Select-Object -Last 1
+    if ($p) { $exe = Join-Path $p.InstallLocation 'winget.exe'; if (Test-Path -LiteralPath $exe) { return $exe } }
+    return (Get-Command 'winget.exe' -ErrorAction SilentlyContinue).Source
+}
+
+# ======================== STAGE 1 - first logon (winget not ready): register Stage 2, reboot ========================
+if (-not $Stage2) {
+    Log '=== InDows STAGE 1 (first logon) start ==='
+    try {
+        $a = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-WindowStyle Maximized -ExecutionPolicy Unrestricted -NoProfile -File `"$selfPath`" -Stage2"
+        $t = New-ScheduledTaskTrigger -AtLogOn
+        $pr = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive -RunLevel Highest
+        Register-ScheduledTask -TaskName $taskName -Action $a -Trigger $t -Principal $pr -Force -ErrorAction Stop | Out-Null
+    } catch { Log "FATAL: could not register Stage 2 task: $_ - aborting (no reboot)."; return }
+    Log '=== STAGE 1 done - rebooting; log in once and the apps will install ==='
+    Start-Sleep -Seconds 3
+    Restart-Computer -Force
+    return
+}
+
+# ======================== STAGE 2 - after reboot, established session (VISIBLE UI) ========================
+try { $Host.UI.RawUI.WindowTitle = 'InDows - installation' } catch {}
+try { Clear-Host } catch {}
+# Decode winget output as UTF-8 so captured text is clean (no wide-char mojibake).
+try { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8 } catch {}
+Write-Host ''
+Write-Host '  ###################################################' -ForegroundColor Cyan
+Write-Host '  #              InDows - installation              #' -ForegroundColor Cyan
+Write-Host '  ###################################################' -ForegroundColor Cyan
+Log '=== InDows STAGE 2 (post-reboot install) start ==='
+
+Step 'Preparing winget'
+for ($i = 0; $i -lt 30 -and -not (Get-Winget); $i++) {
+    Get-AppxPackage -Name 'Microsoft.DesktopAppInstaller' -ErrorAction SilentlyContinue |
+        ForEach-Object { Add-AppxPackage -DisableDevelopmentMode -Register "$($_.InstallLocation)\AppXManifest.xml" -ErrorAction SilentlyContinue }
+    Start-Sleep -Seconds 10
+}
+$winget = Get-Winget
+if (-not $winget) { Fail 'winget unavailable - will retry at next logon'; Log '=== STAGE 2 deferred (no winget) ==='; return }
+Ok 'winget ready'
+
+Step 'Waiting for network'
+function Test-Online {
+    try {
+        if (-not [System.Net.NetworkInformation.NetworkInterface]::GetIsNetworkAvailable()) { return $false }
+        (Invoke-WebRequest -Uri 'http://www.msftconnecttest.com/connecttest.txt' -UseBasicParsing -TimeoutSec 8).Content.Trim() -eq 'Microsoft Connect Test'
+    } catch { return $false }
+}
+$deadline = (Get-Date).AddMinutes(5)
+while (-not (Test-Online) -and (Get-Date) -lt $deadline) { Start-Sleep -Seconds 10 }
+if (-not (Test-Online)) { Fail 'No network - will retry at next logon'; Log '=== STAGE 2 deferred (no network) ==='; return }
+Ok 'Network OK'
+
+# Accept the winget source agreements once.
+& $winget list --accept-source-agreements *> $null
+
+# Install every package from the catalog (configuration.dsc.yaml = the id source-of-truth).
+$ids = Select-String -Path $configPath -Pattern 'id:\s*([\w.+-]+),\s*source:\s*winget' |
+    Where-Object { $_.Line -notmatch '^\s*#' } |
+    ForEach-Object { $_.Matches.Groups[1].Value } | Select-Object -Unique
+$total = $ids.Count
+Step "Installing applications ($total total)"
+Log "Installing $total packages from the catalog..."
+$base = '--exact', '--silent', '--accept-package-agreements', '--accept-source-agreements', '--disable-interactivity'
+$failed = @(); $done = 0; $n = 0
+foreach ($id in $ids) {
+    $n++
+    Write-Progress -Activity 'InDows - Installing applications' -Status "$id  ($n/$total)" -PercentComplete ([int](($n - 1) / $total * 100))
+    # Idempotent: skip if already installed (so the retry doesn't redo everything).
+    & $winget list --id $id --exact --accept-source-agreements *> $null
+    if ($LASTEXITCODE -eq 0) { Note "already installed: $id  ($n/$total)"; $done++; continue }
+    Write-Host ''
+    Write-Host ("// [{0}/{1}] Installing {2} via winget //" -f $n, $total, $id) -ForegroundColor Cyan
+    Log "STEP: install $id ($n/$total)"
+    # Keep winget's noisy progress OUT of the main log: capture it; on failure log a filtered tail only.
+    $wout = & $winget install --id $id @base 2>&1 | Out-String
+    $code = $LASTEXITCODE
+    if ($code -in 0, 3010, 1641) {
+        Ok "$id installed successfully"; $done++
+    } else {
+        Fail "$id failed (code $code)"; $failed += $id
+        ($wout -split "`r?`n" | Where-Object { $_ -match '\S' -and $_ -notmatch '^[\s\\|/-]*$' -and $_ -notmatch '[^\x00-\x7F]' -and $_ -notmatch '^\s*\d{1,3}\s*%\s*$' } | Select-Object -Last 15) | ForEach-Object { Log "    winget> $($_.Trim())" }
+    }
+}
+Write-Progress -Activity 'InDows - Installing applications' -Completed
+Log ("Install loop done. Failures: {0}" -f $(if ($failed) { $failed -join ', ' } else { 'none' }))
+Write-Host ''
+Write-Host ("  Result: {0}/{1} installed, {2} failed." -f $done, $total, $failed.Count) -ForegroundColor $(if ($failed.Count) { 'Yellow' } else { 'Green' })
+
+if ($failed.Count -gt 0) {
+    Note ('Failed: ' + ($failed -join ', '))
+    Note 'The task will retry at next logon.'
+    Log '=== STAGE 2 done (some failures; will retry) ==='
+    Wait-Key
+    return
+}
+
+# Success - clean up: remove the task and the InDows payload files. Keep the .log as proof.
+Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath $configPath -Force -ErrorAction SilentlyContinue
+Remove-Item -LiteralPath $selfPath   -Force -ErrorAction SilentlyContinue
+Log '=== InDows STAGE 2 done - install complete, cleaned up ==='
+
+Write-Host ''
+Write-Host '  ###################################################' -ForegroundColor Green
+Write-Host '  #          InDows: installation complete!         #' -ForegroundColor Green
+Write-Host '  ###################################################' -ForegroundColor Green
+Write-Host ("  {0}/{1} applications installed." -f $done, $total) -ForegroundColor Green
+Wait-Key
+]]></File>
+		<File path="C:\Windows\Setup\Scripts\configuration.dsc.yaml"><![CDATA[
+# InDows (public) - base "essentials" catalog.
+#
+# These are the few apps the base installs at first logon (via bootstrap.ps1). Keep it minimal;
+# add your own below. Find package ids with:  winget search <name>   or   winget show <id>
+#
+# This file is a valid winget DSC document (you could also run it with
+#   winget configure -f configuration.dsc.yaml --accept-configuration-agreements
+# ), but the InDows bootstrap simply reads the "id: <pkg>, source: winget" entries and installs them.
+
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.2
+properties:
+  configurationVersion: 0.2.0
+  resources:
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: brave
+      settings: { id: Brave.Brave, source: winget }   # Brave - web browser
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: sevenzip
+      settings: { id: 7zip.7zip, source: winget }      # 7-Zip - archiver
+]]></File>
+	</Extensions>
+</unattend>

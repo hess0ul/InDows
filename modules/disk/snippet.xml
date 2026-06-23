@@ -1,0 +1,58 @@
+<!-- ============================================================================
+     InDows module: disk  (automated disk layout)
+     Replaces the INTERACTIVE disk step with a fully automatic wipe + standard UEFI
+     layout on DISK 0. The base leaves disk selection interactive; add this only if
+     you want zero clicks AND you are sure which disk is "disk 0".
+
+     WHERE: settings pass="windowsPE" > component "Microsoft-Windows-Setup"
+            (add BOTH the <DiskConfiguration> and the <ImageInstall> below)
+
+     **** DANGER ****  WillWipeDisk = true ERASES disk 0 with no confirmation.
+     Make sure disk 0 is the target drive (unplug other disks if unsure).
+     ============================================================================ -->
+<DiskConfiguration>
+    <Disk wcm:action="add">
+        <DiskID>0</DiskID>
+        <WillWipeDisk>true</WillWipeDisk>
+        <CreatePartitions>
+            <CreatePartition wcm:action="add">
+                <Order>1</Order>
+                <Type>EFI</Type>
+                <Size>300</Size>
+            </CreatePartition>
+            <CreatePartition wcm:action="add">
+                <Order>2</Order>
+                <Type>MSR</Type>
+                <Size>16</Size>
+            </CreatePartition>
+            <CreatePartition wcm:action="add">
+                <Order>3</Order>
+                <Type>Primary</Type>
+                <Extend>true</Extend>
+            </CreatePartition>
+        </CreatePartitions>
+        <ModifyPartitions>
+            <ModifyPartition wcm:action="add">
+                <Order>1</Order>
+                <PartitionID>1</PartitionID>
+                <Format>FAT32</Format>
+                <Label>System</Label>
+            </ModifyPartition>
+            <ModifyPartition wcm:action="add">
+                <Order>2</Order>
+                <PartitionID>3</PartitionID>
+                <Format>NTFS</Format>
+                <Label>Windows</Label>
+                <Letter>C</Letter>
+            </ModifyPartition>
+        </ModifyPartitions>
+    </Disk>
+</DiskConfiguration>
+<ImageInstall>
+    <OSImage>
+        <InstallTo>
+            <DiskID>0</DiskID>
+            <PartitionID>3</PartitionID>
+        </InstallTo>
+    </OSImage>
+</ImageInstall>

@@ -1,0 +1,22 @@
+<!-- ============================================================================
+     InDows module: autologon
+     Signs the account in automatically at boot, without typing the password. Pairs with the
+     'username' module (same account).
+
+     WHERE: settings pass="oobeSystem" > component "Microsoft-Windows-Shell-Setup"
+     ANCHOR (a comment in the base) named:   [InDows:module] account
+
+     REPLACE: __USERNAME__ (the account) and __PASSWORD__ (its password; empty value if no password).
+     PERMANENT auto-logon as written. For a ONE-TIME auto-logon, add <LogonCount>1</LogonCount>.
+
+     SECURITY: the password is stored in CLEAR TEXT in autounattend.xml. Never commit a real password
+     to a public repo. Auto-logon also means anyone who powers on the PC is logged in as you.
+     ============================================================================ -->
+<AutoLogon>
+    <Username>__USERNAME__</Username>
+    <Enabled>true</Enabled>
+    <Password>
+        <Value>__PASSWORD__</Value>
+        <PlainText>true</PlainText>
+    </Password>
+</AutoLogon>

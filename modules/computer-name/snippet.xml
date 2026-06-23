@@ -1,0 +1,15 @@
+<!-- ============================================================================
+     InDows module: computer-name
+     Sets the PC name automatically. Without this module Windows assigns a random
+     name (e.g. DESKTOP-AB12CD3) which you can change later in Settings.
+
+     WHERE: settings pass="specialize" > component "Microsoft-Windows-Shell-Setup"
+     ANCHOR (a comment in the base) named:   [InDows:module] specialize-shell-setup
+
+     REPLACE: __COMPUTERNAME__
+       - max 15 characters
+       - letters, digits and hyphens only (no spaces, no dots)
+       - must not be all-numeric
+       - use a single "*" to let Windows generate a random name explicitly
+     ============================================================================ -->
+<ComputerName>__COMPUTERNAME__</ComputerName>

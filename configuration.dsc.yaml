@@ -1,0 +1,19 @@
+# InDows (public) - base "essentials" catalog.
+#
+# These are the few apps the base installs at first logon (via bootstrap.ps1). Keep it minimal;
+# add your own below. Find package ids with:  winget search <name>   or   winget show <id>
+#
+# This file is a valid winget DSC document (you could also run it with
+#   winget configure -f configuration.dsc.yaml --accept-configuration-agreements
+# ), but the InDows bootstrap simply reads the "id: <pkg>, source: winget" entries and installs them.
+
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.2
+properties:
+  configurationVersion: 0.2.0
+  resources:
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: brave
+      settings: { id: Brave.Brave, source: winget }   # Brave - web browser
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: sevenzip
+      settings: { id: 7zip.7zip, source: winget }      # 7-Zip - archiver

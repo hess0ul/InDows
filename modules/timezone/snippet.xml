@@ -1,0 +1,14 @@
+<!-- ============================================================================
+     InDows module: timezone
+     Sets the time zone automatically. Without it, Windows uses the region picked
+     during the first-run setup.
+
+     WHERE: settings pass="specialize" > component "Microsoft-Windows-Shell-Setup"
+     ANCHOR (a comment in the base) named:   [InDows:module] specialize-shell-setup
+
+     REPLACE: __TIMEZONE__  with a Windows time-zone ID (NOT a city/offset).
+       List them with:   tzutil /l        (or  Get-TimeZone -ListAvailable )
+       Examples: "Romance Standard Time" (FR/CET), "GMT Standard Time" (UK),
+                 "Pacific Standard Time", "Eastern Standard Time", "UTC"
+     ============================================================================ -->
+<TimeZone>__TIMEZONE__</TimeZone>

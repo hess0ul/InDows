@@ -1,0 +1,29 @@
+<!-- ============================================================================
+     InDows module: username
+     Creates a local user account automatically, so the first-run "create account"
+     screen is skipped. Without this module the base leaves that screen interactive.
+
+     WHERE: settings pass="oobeSystem" > component "Microsoft-Windows-Shell-Setup"
+     ANCHOR (a comment in the base) named:   [InDows:module] account
+
+     REPLACE before use:
+       __USERNAME__   the account name (e.g. Alex)
+       __PASSWORD__   the password, in PLAIN TEXT
+                      -> for NO password, use an empty value: <Value></Value>
+
+     SECURITY: the password is stored in clear text in autounattend.xml.
+     Never commit a real password to a public repo. Keep your filled-in file local.
+     ============================================================================ -->
+<UserAccounts>
+    <LocalAccounts>
+        <LocalAccount wcm:action="add">
+            <Name>__USERNAME__</Name>
+            <DisplayName>__USERNAME__</DisplayName>
+            <Group>Administrators</Group>
+            <Password>
+                <Value>__PASSWORD__</Value>
+                <PlainText>true</PlainText>
+            </Password>
+        </LocalAccount>
+    </LocalAccounts>
+</UserAccounts>
