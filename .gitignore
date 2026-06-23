@@ -1,0 +1,32 @@
+# --- Install media (large; never commit) ---
+*.iso
+*.wim
+*.esd
+*.vhd
+*.vhdx
+
+# --- Runtime output / logs ---
+*.log
+InDows-*.log
+
+# --- Local, personalized copies (keep the public repo generic & secret-free) ---
+# If you keep a customized version next to the generic one, name it *.local.* and it stays out of git.
+*.local.xml
+*.local.yaml
+*.local.dsc.yaml
+autounattend.personal.xml
+
+# --- OS / editor cruft ---
+Thumbs.db
+ehthumbs.db
+desktop.ini
+.DS_Store
+*.swp
+*~
+.vscode/
+.idea/
+
+# --- Temp ---
+*.tmp
+*.bak
+/scratch/
