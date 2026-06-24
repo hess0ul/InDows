@@ -20,7 +20,7 @@ yourself, one precise action at a time.
 ## ✨ Highlights
 
 - 🧹 **Debloated, not gutted** — strips the junk but keeps Store, Terminal, winget and anything removing it would break.
-- 🔒 **Private by default** — telemetry, Copilot and the ad ID off; Defender and Windows Update left intact.
+- 🔒 **Private by default** — telemetry and Copilot off, and **no "promoted apps" ads** pinned in Start; Defender and Windows Update left intact.
 - ⚡ **Clean & quick** — hardware-requirement bypass (TPM / Secure Boot / RAM) and conservative UI/perf tweaks.
 - 🧩 **Modular** — 32 opt-in modules (privacy, debloat, UI, gaming, services, DNS, identity…), each with its own tutorial.
 - 📦 **Apps on first boot** — installs your essentials via winget on a live progress screen, then cleans up after itself.
@@ -86,6 +86,7 @@ Start with [`modules/username`](modules/username/) — the reference example —
 ```
 autounattend.xml                 # the BASE (generic) - ready to use
 bootstrap.ps1                    # first-logon app installer (two-stage)
+base-tweaks.ps1                  # base default-user tweak (ad-free Start menu)
 configuration.dsc.yaml           # base "essentials" catalog (Brave + 7-Zip)
 LICENSE  ·  NOTICE.md             # MIT + credits to the projects we distil from
 docs/    base-recipe.md          # how the base autounattend is generated

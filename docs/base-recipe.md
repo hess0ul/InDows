@@ -29,16 +29,20 @@ Go down the page. Only the sections below need a change — everything else: lea
 9. **Password expiration** — **"Passwords do not expire"** (default). *Account Lockout* — default.
 10. **File Explorer tweaks** — optional: *"Always show file extensions"*, *"Open File Explorer to This PC"*,
     *"Use the classic context (right-click) menu"* (or leave to modules).
-11. **System tweaks** — ⚠️ leave **UNCHECKED** the security ones: *Disable Windows Update, Disable UAC,
+11. **Start menu and taskbar** — set **Start menu → remove all pinned tiles (empty)** and **Taskbar → remove
+    all pinned apps (empty)** so a fresh install ships with **no "promoted app" ads** in Start/taskbar. (This
+    is the robust, build-correct way — the generator emits the matching `SetStartPins` / `TaskbarLayout` /
+    unlock machinery.) *URL params: `StartPinsMode=Empty`, `StartTilesMode=Empty`, `TaskbarIconsMode=Empty`.*
+12. **System tweaks** — ⚠️ leave **UNCHECKED** the security ones: *Disable Windows Update, Disable UAC,
     Disable SmartScreen, Disable Smart App Control*. (optional safe: *Hide Edge First Run Experience*)
-12. **Core isolation** — keep enabled. *Visual effects / Desktop icons / Colors / Wallpaper / Lock screen* —
+13. **Core isolation** — keep enabled. *Visual effects / Desktop icons / Colors / Wallpaper / Lock screen* —
     default (InDows modules handle those).
-13. **WLAN / Wi-Fi setup** — **"Configure Wi-Fi interactively"**.
-14. **Express settings** — **"Disable all"**; also tick **"Do not show Bing results when searching"**.
-15. **Remove bloatware** — tick the bloat you want gone. ⚠️ do **NOT** remove Microsoft Store, Windows
+14. **WLAN / Wi-Fi setup** — **"Configure Wi-Fi interactively"**.
+15. **Express settings** — **"Disable all"**; also tick **"Do not show Bing results when searching"**.
+16. **Remove bloatware** — tick the bloat you want gone. ⚠️ do **NOT** remove Microsoft Store, Windows
     Terminal, Notepad, Photos, Snipping Tool, Calculator, PowerShell, OpenSSH Client. **Leave Edge** (→
     `remove-edge` module).
-16. **Run custom scripts** — leave **ALL** empty (InDows grafts its own). *AppLocker / XML markup* — default.
+17. **Run custom scripts** — leave **ALL** empty (InDows grafts its own). *AppLocker / XML markup* — default.
 
 Then click **Download** and hand the generated `autounattend.xml` back to InDows for grafting.
 
@@ -76,15 +80,20 @@ engine) · `PowerShell ISE` · `Remote Desktop Client` (`mstsc.exe` stays regard
 
 Onto the generated file, InDows adds (all inside the schneegans `<Extensions>` / OOBE structure):
 
-1. **`bootstrap.ps1`** as a `<File>` node — the two-stage first-logon app installer.
-2. **`configuration.dsc.yaml`** as a `<File>` node — the essentials catalog (Brave + 7-Zip).
-3. A **`FirstLogonCommands`** entry that runs `bootstrap.ps1`.
-4. Three **module anchors** (HTML comments) so modules know where to plug in:
+1. **`base-tweaks.ps1`** as a `<File>` node + an `Order 5` call **inside the default-user hive window** —
+   turns off the Start-menu "promoted apps" (Content Delivery Manager) so every new user gets an ad-free Start.
+2. **`bootstrap.ps1`** as a `<File>` node — the two-stage first-logon app installer.
+3. **`configuration.dsc.yaml`** as a `<File>` node — the essentials catalog (Brave + 7-Zip).
+4. A **`FirstLogonCommands`** entry (`Order 2`) that runs `bootstrap.ps1`.
+5. The base's default-user hive **unload is renumbered to `Order 50`**, leaving `Order 6–49` for per-user
+   modules to run *while the hive is still loaded*.
+6. **Six module anchors** (HTML comments) so modules know where to plug in:
    - `<!-- [InDows:module] specialize-shell-setup -->` — `specialize` Shell-Setup elements (`computer-name`, `timezone`)
-   - `<!-- [InDows:module] specialize-scripts -->` — machine-wide scripts (HKLM / services / DISM / AppX)
-   - `<!-- [InDows:module] default-user-scripts -->` — per-user scripts (HKCU, written to the default profile hive)
+   - `<!-- [InDows:module] default-user-scripts -->` — per-user scripts, **inside** the hive window (`HKEY_USERS\DefaultUser`)
+   - `<!-- [InDows:module] specialize-scripts -->` — machine-wide scripts after the unload (HKLM / services / DISM / AppX)
    - `<!-- [InDows:module] oobe-international -->` — `oobeSystem` international component (`locale-keyboard`)
    - `<!-- [InDows:module] account -->` — where the `username` module's `<UserAccounts>` goes
    - `<!-- [InDows:module] first-logon-scripts -->` — scripts needing a live session (DNS / GPU / USB)
 
-This grafting is mechanical and validated (XML well-formed, embedded scripts parse, round-trip checks).
+This grafting is done by a script and validated (XML well-formed, embedded scripts parse, ascending
+`Order`s, default-user window correct).

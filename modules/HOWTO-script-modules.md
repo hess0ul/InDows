@@ -21,34 +21,39 @@ of the module's `.ps1`:
 Each script runs at one of three points. Find the matching anchor comment in the base and add the call
 right after it. The module's README says **which anchor** to use.
 
-| Anchor (a comment in the base) | When it runs | Use for |
-| --- | --- | --- |
-| `[InDows:module] specialize-scripts` | specialize (machine, before first boot) | HKLM, services, DISM, AppX removal |
-| `[InDows:module] default-user-scripts` | specialize, with the **default-user hive loaded** | per-user settings (`HKEY_USERS\DefaultUser`) |
-| `[InDows:module] first-logon-scripts` | first logon (live session) | DNS, GPU, devices |
+| Anchor (a comment in the base) | When it runs | `Order` to use | Use for |
+| --- | --- | --- | --- |
+| `[InDows:module] default-user-scripts` | specialize, **default-user hive loaded** | **6–49** | per-user settings (`HKEY_USERS\DefaultUser`) |
+| `[InDows:module] specialize-scripts` | specialize, **after** the hive is unloaded | **51+** | HKLM, services, DISM, AppX removal |
+| `[InDows:module] first-logon-scripts` | first logon (live session) | **3+** | DNS, GPU, devices |
 
-**specialize** and **default-user** anchors sit in a PowerShell `RunSynchronous` sequence — add a command
-with the **next free, unique `Order` number** (if you add several modules to the same pass, each one needs
-its own `Order`: 90, 91, 92… — duplicates are rejected):
+The `specialize` and `default-user` anchors sit in a `RunSynchronous` sequence with **numbered `Order`s**.
+The base reserves: `1–4` = setup + `DefaultUser.ps1`, `5` = InDows base tweaks, **`50` = unload the
+default-user hive**. So the window matters:
+
+- **`default-user-scripts`** runs *before* the unload → pick an `Order` in **6–49** (the hive is loaded).
+- **`specialize-scripts`** runs *after* the unload → pick **51+** (the hive is gone — `HKLM` only there).
+- Adding several modules to the same anchor? Give each its own number (7, 8, 9…). Duplicates are rejected.
 
 ```xml
 <RunSynchronousCommand wcm:action="add">
-  <Order>99</Order>
+  <Order>10</Order>
   <Path>powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Windows\Setup\Scripts\NAME.ps1"</Path>
 </RunSynchronousCommand>
 ```
 
 The **first-logon** anchor sits in `FirstLogonCommands` — use `<SynchronousCommand>` / `<CommandLine>`
-instead:
+instead (`Order` 3+, since the base uses 1 and 2):
 
 ```xml
 <SynchronousCommand wcm:action="add">
-  <Order>99</Order>
+  <Order>3</Order>
   <CommandLine>powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Windows\Setup\Scripts\NAME.ps1"</CommandLine>
 </SynchronousCommand>
 ```
 
-> Per-user (`default-user`) scripts write to `HKEY_USERS\DefaultUser` — the base loads that hive around the
-> anchor, so every **new** user inherits the settings. Don't use `HKCU` there (no user exists yet).
+> Per-user (`default-user`) scripts write to `HKEY_USERS\DefaultUser` — the base keeps that hive loaded
+> from `Order 3` until the `Order 50` unload, so a `6–49` command lands inside that window and every **new**
+> user inherits the settings. Don't use `HKCU` there (no user exists yet).
 
 Each script writes a small log to `C:\Windows\Temp\InDows-<module>.log` for troubleshooting.

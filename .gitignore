@@ -9,7 +9,7 @@
 *.log
 InDows-*.log
 
-# --- Local, personalized copies (keep the public repo generic & secret-free) ---
+# --- Local, personalized copies (keep the repo generic & secret-free) ---
 # If you keep a customized version next to the generic one, name it *.local.* and it stays out of git.
 *.local.xml
 *.local.yaml
