@@ -7,7 +7,7 @@ $ErrorActionPreference = 'Continue'
 $log = 'C:\Windows\Temp\InDows-network-dns.log'
 function Log([string]$m) { "{0}  {1}" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }
 
-$dns = @('1.1.1.1', '1.0.0.1')                 # Cloudflare
+$dns = @('1.1.1.1', '1.0.0.1')   # [InDows:param DNS] Cloudflare (default; the InDows GUI can pick another below)
 # $dns = @('1.1.1.2', '1.0.0.2')               # Cloudflare (malware blocking)
 # $dns = @('9.9.9.9', '149.112.112.112')       # Quad9
 # $dns = @('94.140.14.14', '94.140.15.15')     # AdGuard

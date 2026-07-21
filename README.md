@@ -1,4 +1,6 @@
-# InDows
+<p align="center">
+  <img src="docs/banner.png" alt="InDows" width="720">
+</p>
 
 > **Declare your Windows 11 once — install it on autopilot.**
 > Write one file to a USB stick, boot, walk away, and come back to a clean, debloated, ready-to-use
@@ -14,6 +16,9 @@ InDows is a single **`autounattend.xml`** you drop at the root of a Windows 11 i
 is deliberately generic — it carries **nothing personal**, just a sane, debloated Windows. Everything tied
 to *you* (account, computer name, language, app list, disk layout…) is an **opt-in module** you bolt on
 yourself, one precise action at a time.
+
+It's the **after-reset** companion to **[ReDows](https://github.com/hess0ul/ReDows)** — which inventories
+a PC *before* wiping it, so InDows can rebuild it afterwards. **Pre-release.**
 
 ---
 

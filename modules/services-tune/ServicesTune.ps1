@@ -6,7 +6,7 @@
 #   'hardening' -> also disables some telemetry/remote services (advanced; read the warnings).
 # Edit the lists to taste -- each name is a service. Find names with: Get-Service | Sort Name
 
-$preset = 'safe'
+$preset = 'safe'   # [InDows:param PRESET] the InDows GUI can switch this to 'hardening'
 
 $ErrorActionPreference = 'Continue'
 $log = 'C:\Windows\Temp\InDows-services-tune.log'
