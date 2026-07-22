@@ -42,8 +42,8 @@ Log 'PreventDeviceEncryption = 1 (automatic BitLocker off)'
 # --- Disable SmartScreen ----------------------------------------------------
 #   RISK: Windows stops warning you about malicious / unknown downloads, apps and websites.
 # RegString 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer' 'SmartScreenEnabled' 'Off'
-# RegDword  'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' 'EnableSmartScreen' 0
-# RegDword  'HKLM:\SOFTWARE\Policies\Microsoft\Edge' 'SmartScreenEnabled' 0
+# RegDword 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\System' 'EnableSmartScreen' 0
+# RegDword 'HKLM:\SOFTWARE\Policies\Microsoft\Edge' 'SmartScreenEnabled' 0
 # Log 'SmartScreen disabled (DANGER)'
 
 # --- Microsoft Defender (GRANULAR - pick exactly what you turn off) ----------
