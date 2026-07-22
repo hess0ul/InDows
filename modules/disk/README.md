@@ -1,6 +1,11 @@
 # Module: `disk` — automated disk layout
 
-Replace the **interactive** disk step with a fully automatic **wipe + standard UEFI layout on disk 0**.
+Replace the **interactive** disk step with a fully automatic disk layout.
+
+> In the **InDows GUI** this module opens a **partition-table editor** (Advanced category, behind the risk
+> disclaimer): pick the target disk, whether to wipe it, and add/size/format each partition, then mark which one
+> Windows installs to. The `snippet.xml` below is the **standalone default** (wipe + standard UEFI layout on
+> disk 0) used if you integrate the module by hand; the GUI generates the equivalent XML from your layout.
 
 - **Snippet:** [`snippet.xml`](snippet.xml)
 - **Where:** `windowsPE` pass → `Microsoft-Windows-Setup` component

@@ -11,11 +11,14 @@ function RegDword([string]$p, [string]$n, [int]$v) {
 }
 $sp = 'Registry::HKEY_USERS\DefaultUser\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy'
 
+$recycleDays  = 60   # [InDows:param RECYCLE_DAYS]  empty the Recycle Bin after this many days (0 = never)
+$downloadDays = 60   # [InDows:param DOWNLOAD_DAYS] delete Downloads not opened in this many days (0 = never)
+
 Log '=== storage-sense start ==='
-# Storage Sense on + Recycle Bin >60 days + Downloads not opened >60 days (numeric value names are literal)
+# Storage Sense on + Recycle Bin cleanup + Downloads cleanup (numeric value names are literal)
 RegDword $sp '01' 1
 RegDword $sp '08' 1
-RegDword $sp '256' 60
+RegDword $sp '256' $recycleDays
 RegDword $sp '32' 1
-RegDword $sp '512' 60
+RegDword $sp '512' $downloadDays
 Log '=== storage-sense done ==='

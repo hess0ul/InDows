@@ -1,13 +1,17 @@
 # InDows module: optional-features
 # Enables Windows optional features via DISM. Anchor: [InDows:module] specialize-scripts
-# Uncomment the features you want. Most need a reboot to finish (the first boot covers that).
+# Each line below is ONE feature the InDows GUI ticks/unticks individually (a commented line is skipped).
+# Most need a reboot to finish (the first boot covers that).
+#
+# NOTE: run STANDALONE this enables every feature listed. Through the InDows GUI you pick which ones;
+# all of them start UNticked, so nothing is enabled unless you ask for it.
 
 $features = @(
-    # 'Microsoft-Hyper-V-All'              # Hyper-V (Pro/Enterprise only)
-    # 'Microsoft-Windows-Subsystem-Linux'  # WSL (legacy feature; the winget 'Microsoft.WSL' app is newer)
-    # 'VirtualMachinePlatform'             # required by WSL2 / sandboxes
-    # 'Containers-DisposableClientVM'      # Windows Sandbox (Pro/Enterprise only)
-    # 'NetFx3'                             # .NET Framework 3.5
+    'Microsoft-Hyper-V-All'              # Hyper-V (Pro/Enterprise only)
+    'Microsoft-Windows-Subsystem-Linux'  # WSL (legacy feature; the winget 'Microsoft.WSL' app is newer)
+    'VirtualMachinePlatform'             # required by WSL2 / sandboxes
+    'Containers-DisposableClientVM'      # Windows Sandbox (Pro/Enterprise only)
+    'NetFx3'                             # .NET Framework 3.5
 )
 
 $ErrorActionPreference = 'Continue'
