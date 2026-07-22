@@ -2,8 +2,8 @@
 # Sets the desktop wallpaper and (optionally) the lock-screen image. Anchor: [InDows:module] first-logon-scripts
 # Put your image(s) on the disk first (see README), then set the paths below. Leave a path empty to skip it.
 
-$desktop = 'C:\Windows\Web\Wallpaper\Windows\img0.jpg'   # your desktop image
-$lock    = ''                                            # your lock-screen image (optional)
+$desktop = '__WALLPAPER__'    # your desktop image (the InDows GUI fills this; e.g. C:\Path\to\img.jpg)
+$lock    = '__LOCKSCREEN__'   # your lock-screen image (optional)
 $style   = '10'   # fit mode: 10 = Fill, 6 = Fit, 2 = Stretch, 0 = Center, 22 = Span
 
 $ErrorActionPreference = 'Continue'

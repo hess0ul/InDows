@@ -47,6 +47,11 @@ Uninstall Microsoft Edge + Internet Explorer capability. See [`remove-edge/`](re
 Uninstall OneDrive (`OneDriveSetup.exe /uninstall`), remove its Explorer namespace, run-key, and setup from the
 default profile.
 
+### `debloat-brave` — [S] 🟡 · ✅
+
+Turn off Brave's built-in extras via enterprise policy: Rewards/Wallet/VPN, Leo AI, Tor, News/Talk, and telemetry
+pings (12 policy DWORDs under `HKLM\SOFTWARE\Policies\BraveSoftware\Brave`).
+
 ---
 
 ## Privacy & telemetry
@@ -76,6 +81,11 @@ Copilot (`TurnOffWindowsCopilot=1`), Recall, Click-to-Do, Edge AI, Paint/Notepad
 
 Bing web results + Bing AI in Search, Cortana (`AllowCortana=0`), search highlights, store search suggestions, search history. reg.
 
+### `device-metadata` — [S] 🟢 · ✅
+
+Stop Windows downloading device apps/metadata from Microsoft for your hardware (`PreventDeviceMetadataFromNetwork=1`,
+setting + policy mirror).
+
 ---
 
 ## UI & shell (per-user — default profile)
@@ -104,6 +114,10 @@ Show/hide This PC, Recycle Bin, User folder, Network, Control Panel; hide all ic
 
 Dark mode, disable transparency/animations, `MenuShowDelay=0`, `StartupDelayInMSec=0`, "adjust for best performance"
 visual-effects profile. reg.
+
+### `default-terminal` — [U] 🟢 · ✅
+
+Make Windows Terminal the default terminal host (`DelegationConsole`/`DelegationTerminal` under `HKCU\Console\%%Startup`).
 
 ---
 
@@ -178,6 +192,18 @@ not bypass Tamper Protection.)
 RTC-as-UTC for dual-boot ([S] 🟢), verbose logon, long paths, NumLock at boot, restore point (**post-install**, not
 during), classic photo viewer.
 
+### `network-profile` — [F] 🟢 · ✅
+
+Set the active network to the Private profile (`Set-NetConnectionProfile -NetworkCategory Private`) so LAN discovery/sharing works.
+
+### `powershell-policy` — [S] 🟡 · ✅
+
+Set the machine PowerShell execution policy to RemoteSigned (`…\ShellIds\Microsoft.PowerShell\ExecutionPolicy`).
+
+### `storage-sense` — [U] 🟢 · ✅
+
+Enable Storage Sense + auto-clean Recycle Bin (60 d) and Downloads not opened in 60 d (`StorageSense\Parameters\StoragePolicy`).
+
 ---
 
 ## Setup, identity & appearance
@@ -201,6 +227,22 @@ Dark theme for new users — apps and shell each optional. reg [U].
 ### `wallpaper` — [F] 🟢 · ✅
 
 Set the desktop + lock-screen image (you stage the image first). reg [HKCU] + Personalization CSP.
+
+---
+
+## Advanced
+
+> ⚠️ **Advanced / higher-risk.** These can weaken security, wipe data, or are hardware/setup-specific.
+> Opt-in — the InDows GUI gates them behind a warning you must accept first.
+
+### `developer-tools` — [S] 🔴 · ✅
+
+Opt-in developer conveniences (off by default): `sudo` in force-new-window mode + Developer Mode (sideload / run unsigned trusted apps).
+
+### `disk` — windowsPE 🔴 · ✅
+
+**Automatic disk wipe + standard UEFI layout on disk 0** (EFI + MSR + NTFS C:). Replaces the interactive disk step.
+**DESTRUCTIVE** — erases disk 0 with no confirmation.
 
 ---
 

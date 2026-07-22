@@ -10,7 +10,7 @@
 ![Windows 11](https://img.shields.io/badge/Windows-11-0078D6?logo=windows11&logoColor=white)
 ![PowerShell](https://img.shields.io/badge/PowerShell-5391FE?logo=powershell&logoColor=white)
 ![Setup: declarative](https://img.shields.io/badge/setup-declarative-success)
-![Modules: 32](https://img.shields.io/badge/modules-32-brightgreen)
+![Modules: 39](https://img.shields.io/badge/modules-39-brightgreen)
 
 InDows is a single **`autounattend.xml`** you drop at the root of a Windows 11 install stick. The **base**
 is deliberately generic — it carries **nothing personal**, just a sane, debloated Windows. Everything tied

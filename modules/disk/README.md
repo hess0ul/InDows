@@ -4,6 +4,7 @@ Replace the **interactive** disk step with a fully automatic **wipe + standard U
 
 - **Snippet:** [`snippet.xml`](snippet.xml)
 - **Where:** `windowsPE` pass → `Microsoft-Windows-Setup` component
+- **Anchor:** `[InDows:module] disk` (the base's windowsPE Setup component)
 - **Risk:** 🔴 **Destructive** — `WillWipeDisk = true` erases disk 0 with no prompt.
 
 ## ⚠️ Before you use it

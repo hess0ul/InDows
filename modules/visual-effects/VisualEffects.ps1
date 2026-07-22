@@ -23,6 +23,8 @@ RegString "$U\Control Panel\Desktop" 'MenuShowDelay' '0'                        
 RegString "$U\Control Panel\Desktop\WindowMetrics" 'MinAnimate' '0'                                   # no minimize/maximize animation
 RegDword  "$U\Software\Microsoft\Windows\DWM" 'EnableAeroPeek' 0                                      # no "peek at desktop"
 RegDword  "$U\Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize" 'StartupDelayInMSec' 0    # no Start menu startup delay
+RegDword  "$U\Control Panel\Accessibility" 'DynamicScrollbars' 0                                      # always show scrollbars (no auto-hide)
+RegDword  "$U\Software\Microsoft\Clipboard" 'EnableClipboardHistory' 1                                # clipboard history (Win+V)
 
 # --- NUCLEAR option (commented): "adjust for best performance" turns off basically ALL effects (plainer look) ---
 # RegDword "$U\Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects" 'VisualFXSetting' 2

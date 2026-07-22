@@ -20,6 +20,8 @@ RegDword $adv 'ShowDriveLettersFirst' 4         # drive letter before the label 
 RegDword $adv 'NavPaneExpandToCurrentFolder' 1  # auto-expand the nav pane to the open folder
 # Hide the "Gallery" entry in the navigation pane
 RegDword "$U\Software\Classes\CLSID\{e88865ea-0e1c-4e20-9aa6-edcd0212c87c}" 'System.IsPinnedToNameSpaceTree' 0
+RegDword $adv 'HideDrivesWithNoMedia' 0         # show empty drives (don't hide drives with no media)
+RegDword "$U\Software\Microsoft\Windows\CurrentVersion\Explorer\CabinetState" 'FullPath' 1   # show the full path in the title bar
 
 # --- optional (commented) ---
 # Compact mode (tighter row spacing):

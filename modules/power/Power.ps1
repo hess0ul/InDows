@@ -24,6 +24,9 @@ if ($dup -match '([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0
     Log 'Could not create the Ultimate Performance plan (not available on this edition?).'
 }
 
+# Screen off after 30 minutes on AC (never sleeps the PC, just the display)
+& powercfg.exe /change monitor-timeout-ac 30
+
 # --- ADVANCED (commented) - desktop-oriented, costs battery on a laptop ---
 # Disable CPU power throttling (keeps cores at higher clocks):
 # New-Item -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling' -Force -ErrorAction SilentlyContinue | Out-Null

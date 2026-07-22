@@ -33,4 +33,11 @@ RegDword $cdm 'OemPreInstalledAppsEnabled' 0
 RegDword $cdm 'ContentDeliveryAllowed' 0
 # Find My Device (machine policy)
 RegDword 'HKLM:\SOFTWARE\Policies\Microsoft\FindMyDevice' 'AllowFindMyDevice' 0
+# Recommended troubleshooters: don't run any (machine policy)
+RegDword 'HKLM:\SOFTWARE\Microsoft\WindowsMitigation' 'UserPreference' 1
+# Share across devices off (also turns off cross-device clipboard SYNC, not local Win+V history)
+RegDword "$U\Software\Microsoft\Windows\CurrentVersion\CDP" 'CdpSessionUserAuthzPolicy' 0
+RegDword "$U\Software\Microsoft\Windows\CurrentVersion\CDP" 'RomeSdkChannelUserAuthzPolicy' 0
+# Resume ("continue on this PC") off
+RegDword "$U\Software\Microsoft\Windows\CurrentVersion\CrossDeviceResume\Configuration" 'IsResumeAllowed' 0
 Log '=== privacy-telemetry done ==='

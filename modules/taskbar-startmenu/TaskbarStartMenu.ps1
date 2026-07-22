@@ -24,6 +24,8 @@ RegDword "$U\Software\Microsoft\Windows\CurrentVersion\Search" 'SearchboxTaskbar
 RegDword $adv 'Start_IrisRecommendations' 0   # cloud "Recommended" suggestions off
 RegDword $adv 'Start_TrackDocs' 0             # don't list recently opened files
 RegDword $adv 'Start_TrackProgs' 0            # don't list recently added/used apps
+RegDword "$U\Software\Microsoft\Windows\CurrentVersion\Start" 'ShowRecentList' 0   # don't show recently added apps in Start
+RegDword "$U\Software\Policies\Microsoft\Windows\Explorer" 'ShowRunAsDifferentUserInStart' 1   # add "Run as different user" to Start
 
 # --- optional (commented) ---
 # More pins vs more recommendations (1 = more pins, 2 = more recommendations, 0 = default):
