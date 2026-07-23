@@ -204,6 +204,10 @@ Set the machine PowerShell execution policy to RemoteSigned (`…\ShellIds\Micro
 
 Enable Storage Sense + auto-clean Recycle Bin (60 d) and Downloads not opened in 60 d (`StorageSense\Parameters\StoragePolicy`).
 
+### `remote-desktop` — [S] 🟡 · ✅
+
+Enable Remote Desktop with Network Level Authentication (`Terminal Server\fDenyTSConnections=0` + firewall). Opens an inbound service — trusted network only.
+
 ---
 
 ## Setup, identity & appearance

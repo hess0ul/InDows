@@ -27,7 +27,7 @@ a PC *before* wiping it, so InDows can rebuild it afterwards. **Pre-release.**
 - 🧹 **Debloated, not gutted** — strips the junk but keeps Store, Terminal, winget and anything removing it would break.
 - 🔒 **Private by default** — telemetry and Copilot off, and **no "promoted apps" ads** pinned in Start; Defender and Windows Update left intact.
 - ⚡ **Clean & quick** — hardware-requirement bypass (TPM / Secure Boot / RAM) and conservative UI/perf tweaks.
-- 🧩 **Modular** — 32 opt-in modules (privacy, debloat, UI, gaming, services, DNS, identity…), each with its own tutorial.
+- 🧩 **Modular** — 39 opt-in modules (privacy, debloat, UI, gaming, services, DNS, identity, disk, security…), each with its own tutorial.
 - 📦 **Apps on first boot** — installs your essentials via winget on a live progress screen, then cleans up after itself.
 
 ## 🚀 Quick start
