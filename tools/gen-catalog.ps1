@@ -5,10 +5,9 @@
 # and writes src/InDows.Gui/data/modules.catalog.json. Modules with no anchor (windowsPE-only or
 # manual) are skipped — only anchor-graftable modules belong in the checklist.
 #
-# Modules source: defaults to the repo's OWN ../modules, so the PUBLIC repo can regenerate and verify the
-# catalog (reproducible; enables a CI drift --check). No hardcoded path -> safe to publish tools/.
-# If your modules live elsewhere (the InDows dev keeps them in a private notes vault), pass the folder:
-#   pwsh ./tools/gen-catalog.ps1 -ModulesDir <path-to-your-modules-folder>
+# Modules source: the modules live in THIS repo, so the default ../modules is the normal case (reproducible;
+# a CI drift --check can regenerate and diff). Override only if they're elsewhere; no hardcoded path.
+#   pwsh ./tools/gen-catalog.ps1 [-ModulesDir <path-to-your-modules-folder>]
 param([string]$ModulesDir = (Join-Path $PSScriptRoot '..\modules'))
 
 $ErrorActionPreference = 'Stop'
