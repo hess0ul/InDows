@@ -1,0 +1,72 @@
+{
+  "_comment": "User-filled values for modules whose content carries __TOKEN__ placeholders. Key = module name; each field has {key,label,kind,default}. kind: text | password | choice | number | file (choice adds an 'options' list of {label,value}; number = digits-only; file = path with a Browse button). At generation, __KEY__ in the module content is replaced by the entered/chosen value.",
+
+  "username": [
+    { "key": "USERNAME", "label": "Account name", "kind": "text", "default": "User" },
+    { "key": "PASSWORD", "label": "Password (leave blank for none; stored in clear text)", "kind": "password", "default": "" },
+    { "key": "GROUP", "label": "Account type", "kind": "choice", "default": "Administrators", "options": [
+      { "label": "Administrator", "value": "Administrators" },
+      { "label": "Standard user (non-admin)", "value": "Users" }
+    ] }
+  ],
+  "autologon": [
+    { "key": "USERNAME", "label": "Account name (same as the account you sign in as)", "kind": "text", "default": "User" },
+    { "key": "PASSWORD", "label": "Password (leave blank for none; stored in clear text)", "kind": "password", "default": "" }
+  ],
+  "computer-name": [
+    { "key": "COMPUTERNAME", "label": "PC name (max 15 chars: letters, digits, hyphens)", "kind": "text", "default": "PC" }
+  ],
+  "wifi": [
+    { "key": "SSID", "label": "Wi-Fi network name (SSID)", "kind": "text", "default": "" },
+    { "key": "PASSWORD", "label": "Wi-Fi password (WPA2; stored in clear text)", "kind": "password", "default": "" }
+  ],
+  "wallpaper": [
+    { "key": "WALLPAPER", "label": "Desktop image (leave blank to skip)", "kind": "file", "default": "" },
+    { "key": "LOCKSCREEN", "label": "Lock-screen image (optional)", "kind": "file", "default": "" }
+  ],
+  "storage-sense": [
+    { "key": "RECYCLE_DAYS", "label": "Empty the Recycle Bin after (days)", "kind": "number", "default": "60" },
+    { "key": "DOWNLOAD_DAYS", "label": "Delete Downloads not opened in (days)", "kind": "number", "default": "60" }
+  ],
+  "network-dns": [
+    { "key": "DNS", "label": "DNS resolver", "kind": "choice", "default": "@('1.1.1.1', '1.0.0.1')", "options": [
+      { "label": "Cloudflare (1.1.1.1)", "value": "@('1.1.1.1', '1.0.0.1')" },
+      { "label": "Cloudflare - malware blocking", "value": "@('1.1.1.2', '1.0.0.2')" },
+      { "label": "Quad9", "value": "@('9.9.9.9', '149.112.112.112')" },
+      { "label": "AdGuard", "value": "@('94.140.14.14', '94.140.15.15')" },
+      { "label": "Google", "value": "@('8.8.8.8', '8.8.4.4')" },
+      { "label": "OpenDNS", "value": "@('208.67.222.222', '208.67.220.220')" },
+      { "label": "Custom…", "value": "__CUSTOM__" }
+    ] }
+  ],
+  "services-tune": [
+    { "key": "PRESET", "label": "Preset", "kind": "choice", "default": "'safe'", "options": [
+      { "label": "Safe (rarely-used services to Manual)", "value": "'safe'" },
+      { "label": "Hardening (also disables telemetry/remote - advanced)", "value": "'hardening'" }
+    ] }
+  ],
+  "timezone": [
+    { "key": "TIMEZONE", "label": "Time zone", "kind": "choice", "default": "UTC", "options": [
+      { "label": "UTC", "value": "UTC" },
+      { "label": "London (GMT)", "value": "GMT Standard Time" },
+      { "label": "Paris / Madrid (CET)", "value": "Romance Standard Time" },
+      { "label": "Berlin / Amsterdam (CET)", "value": "W. Europe Standard Time" },
+      { "label": "Athens / Helsinki (EET)", "value": "GTB Standard Time" },
+      { "label": "New York (Eastern)", "value": "Eastern Standard Time" },
+      { "label": "Chicago (Central)", "value": "Central Standard Time" },
+      { "label": "Denver (Mountain)", "value": "Mountain Standard Time" },
+      { "label": "Los Angeles (Pacific)", "value": "Pacific Standard Time" }
+    ] }
+  ],
+  "locale-keyboard": [
+    { "key": "LOCALE", "label": "Language, region & keyboard", "kind": "choice",
+      "default": "<InputLocale>0409:00000409</InputLocale>\n    <SystemLocale>en-US</SystemLocale>\n    <UILanguage>en-US</UILanguage>\n    <UserLocale>en-US</UserLocale>",
+      "options": [
+        { "label": "English (United States)", "value": "<InputLocale>0409:00000409</InputLocale>\n    <SystemLocale>en-US</SystemLocale>\n    <UILanguage>en-US</UILanguage>\n    <UserLocale>en-US</UserLocale>" },
+        { "label": "English (United Kingdom)", "value": "<InputLocale>0809:00000809</InputLocale>\n    <SystemLocale>en-GB</SystemLocale>\n    <UILanguage>en-GB</UILanguage>\n    <UserLocale>en-GB</UserLocale>" },
+        { "label": "Français (France)", "value": "<InputLocale>040c:0000040c</InputLocale>\n    <SystemLocale>fr-FR</SystemLocale>\n    <UILanguage>fr-FR</UILanguage>\n    <UserLocale>fr-FR</UserLocale>" },
+        { "label": "Deutsch (Deutschland)", "value": "<InputLocale>0407:00000407</InputLocale>\n    <SystemLocale>de-DE</SystemLocale>\n    <UILanguage>de-DE</UILanguage>\n    <UserLocale>de-DE</UserLocale>" },
+        { "label": "Español (España)", "value": "<InputLocale>0c0a:0000040a</InputLocale>\n    <SystemLocale>es-ES</SystemLocale>\n    <UILanguage>es-ES</UILanguage>\n    <UserLocale>es-ES</UserLocale>" }
+      ] }
+  ]
+}

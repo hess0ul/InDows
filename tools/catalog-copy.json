@@ -1,0 +1,160 @@
+{
+  "autologon": {
+    "why": "Skips the password prompt at every boot — handy for a home PC or a VM you reboot often.",
+    "risk": "Stores the password in the registry in clear text. Don't use it on a shared or portable machine."
+  },
+  "computer-name": {
+    "why": "Names the PC for you, so you don't type it during setup and it stays consistent on the network.",
+    "risk": "Cosmetic and reversible. Just avoid characters Windows rejects (spaces, most symbols)."
+  },
+  "context-menu": {
+    "why": "Brings back the full Windows 10 right-click menu, so every action is one click instead of hidden behind \"Show more options\".",
+    "risk": "Purely a shell preference. Revert by deleting one registry key."
+  },
+  "dark-mode": {
+    "why": "Sets a dark theme for every new user out of the box, easier on the eyes.",
+    "risk": "Cosmetic. Apps and shell can be switched back any time in Settings."
+  },
+  "debloat-appx": {
+    "why": "Removes preinstalled Store apps you don't want — tick them one by one (the safe, low-regret ones are pre-ticked).",
+    "risk": "Each app is an individual choice, on top of the base. NOTE: the InDows base already removes a fixed set of Store apps unconditionally, so for those, un-ticking here will NOT bring them back. The Xbox app is the Game Pass client (keep it if you play Game Pass); the Clock app holds alarms, timers and Focus Sessions — both start unticked. Mail & Calendar and People are already retired by Microsoft."
+  },
+  "desktop-icons": {
+    "why": "Chooses which desktop icons show (This PC, Recycle Bin, Network…) instead of the default sparse desktop.",
+    "risk": "Cosmetic per-user preference, fully reversible."
+  },
+  "disable-ai": {
+    "why": "Turns off Copilot, Recall and the AI baked into Edge, Paint and Notepad if you don't want them running.",
+    "risk": "Policy keys only; nothing else breaks. On Windows 24H2 and newer Copilot is a normal app, so the 'turn off Copilot' policy may not fully remove it — the AI features are still disabled."
+  },
+  "disable-bing-search": {
+    "why": "Stops Start-menu search from sending your queries to Bing and showing web results — local search only.",
+    "risk": "Reversible. Web results and Cortana simply stop appearing in Search."
+  },
+  "explorer-ui": {
+    "why": "Makes File Explorer show extensions, hidden files and open to This PC — the sane defaults power users expect.",
+    "risk": "Per-user Explorer preferences, each toggle reversible."
+  },
+  "gaming": {
+    "why": "Tunes Windows for games: Game Mode on, GameDVR recording off, no mouse acceleration.",
+    "risk": "Fullscreen Optimizations and HAGS are GPU/driver-dependent — they can help or hurt depending on your hardware."
+  },
+  "locale-keyboard": {
+    "why": "Sets your language and keyboard layout during install, so you don't pick them by hand at OOBE.",
+    "risk": "Standard install setting. A wrong layout is fixed in Settings in seconds."
+  },
+  "misc": {
+    "why": "A grab-bag of small fixes: RTC-as-UTC for dual-boot, long-path support, NumLock at boot, the classic photo viewer.",
+    "risk": "Small, well-understood tweaks. The restore point is created post-install, not during."
+  },
+  "network-dns": {
+    "why": "Points DNS at a fast, private resolver (Cloudflare, Quad9…) instead of your ISP's, for speed and privacy.",
+    "risk": "Reversible. If the resolver is ever down, switch back to automatic DNS."
+  },
+  "optional-features": {
+    "why": "Turns on Windows features (Hyper-V, WSL, Sandbox, .NET 3.5…) you want up front — tick them one by one; all start off.",
+    "risk": "Additive: nothing is enabled unless you tick it. Hyper-V and Windows Sandbox need Windows Pro/Enterprise and a reboot; Hyper-V can also clash with third-party VM software (VMware/VirtualBox) and some game anti-cheat."
+  },
+  "performance": {
+    "why": "Nudges scheduling, multimedia and input latency toward responsiveness on a desktop.",
+    "risk": "Background-apps-off and single-svchost trade some convenience and RAM behaviour — measurable, not magic."
+  },
+  "power": {
+    "why": "Disables hibernate / Fast Startup and enables the Ultimate Performance plan for a snappier, cleaner-shutdown desktop.",
+    "risk": "Power-throttling and USB-power-saving off drain more on a laptop — leave them on for a portable machine."
+  },
+  "privacy-telemetry": {
+    "why": "Cuts the data Windows sends to Microsoft: telemetry, ad ID, activity history, location, error reports.",
+    "risk": "Error-reporting off can hide a crash you'd want to debug. The rest is safely reversible."
+  },
+  "remove-edge": {
+    "why": "Uninstalls the Edge browser and Internet Explorer for people who use another browser (WebView2, which apps rely on, is deliberately kept).",
+    "risk": "Removing the Edge BROWSER does not break Widgets, the new Outlook, Teams or games — those use WebView2, which stays. What does break: 'microsoft-edge:' links (some Start/search and notification links) and the default PDF/HTML handler, which you must reassign. Uninstall works only in the EEA, and a Windows update can quietly reinstall Edge. Keep another browser installed."
+  },
+  "remove-onedrive": {
+    "why": "Uninstalls OneDrive and removes its Explorer sidebar entry if you don't use Microsoft's cloud.",
+    "risk": "On a clean install nothing is synced yet, so this is safe. On a restore/migration, first set any cloud-only files to 'always keep on this device' — removing OneDrive also turns off Office save-to-cloud and the Desktop/Documents backup. Reversible by reinstalling."
+  },
+  "scheduled-tasks": {
+    "why": "Disables the telemetry, CEIP and compatibility-appraiser tasks that run in the background.",
+    "risk": "Only diagnostic/telemetry tasks are touched; core maintenance is left alone."
+  },
+  "security": {
+    "why": "Turns off BitLocker auto-encryption by default; a commented \"danger zone\" can lower UAC or disable SmartScreen/Defender.",
+    "risk": "The danger-zone options genuinely reduce security — opt in knowingly (they're commented out, so you enable them by hand). This lowers protection but won't damage the OS or hardware. Defender can't be disabled while Tamper Protection is on."
+  },
+  "services-tune": {
+    "why": "Sets rarely-used services to Manual to trim background load; a hardening preset goes further.",
+    "risk": "The hardening preset can break remote management or connectivity if mis-set — it's an opt-in allow-list."
+  },
+  "taskbar-startmenu": {
+    "why": "Cleans the taskbar and Start menu: align left, hide Search / Task View / Widgets / Chat, drop the Recommended section.",
+    "risk": "Per-user shell preferences, every toggle reversible."
+  },
+  "timezone": {
+    "why": "Sets the time zone during install, so the clock is right from first boot.",
+    "risk": "Trivial and reversible in Settings."
+  },
+  "username": {
+    "why": "Creates your local account during install, so you skip the Microsoft-account nag at OOBE. Pick Administrator or a standard (non-admin) account.",
+    "risk": "The password is stored in clear text in the answer file. Pair with autologon only if you accept that. A standard account is safer for day-to-day use."
+  },
+  "visual-effects": {
+    "why": "Drops transparency and animations and adjusts for best performance — a faster-feeling UI.",
+    "risk": "Cosmetic. Toggle animations back in Settings if you miss them."
+  },
+  "wallpaper": {
+    "why": "Sets the desktop and lock-screen image for new users (you stage the image first).",
+    "risk": "Cosmetic. Needs the image file present, or it falls back to the default."
+  },
+  "wifi": {
+    "why": "Joins a Wi-Fi network at first logon, so a wireless-only PC is online without manual setup.",
+    "risk": "Stores the Wi-Fi password in clear text in the config. Treat the media as a secret."
+  },
+  "windows-update": {
+    "why": "Tames Windows Update: no forced reboots while you're active, Delivery Optimization off, feature updates deferred.",
+    "risk": "Deliberately does not disable updates — keeping the OS patched is the \"don't break Windows\" line."
+  },
+  "network-profile": {
+    "why": "Private lets file/printer sharing and device discovery work on your home network; Public locks them down.",
+    "risk": "Only do this on a network you trust (home/office), never on public Wi-Fi."
+  },
+  "powershell-policy": {
+    "why": "Lets you run your own .ps1 scripts without the \"running scripts is disabled\" error, while still blocking unsigned downloads.",
+    "risk": "Loosens the default (Restricted); RemoteSigned is the common developer setting, not wide-open."
+  },
+  "debloat-brave": {
+    "why": "Strips Brave down to a browser — no Rewards/Wallet/VPN/AI/Tor and no telemetry pings.",
+    "risk": "Only affects Brave. Turn a line back on if you actually use that feature."
+  },
+  "default-terminal": {
+    "why": "New console windows open in the modern, tabbed Windows Terminal instead of the legacy host.",
+    "risk": "Cosmetic and reversible. Needs Windows Terminal installed (Windows 11 ships it)."
+  },
+  "device-metadata": {
+    "why": "Less network chatter to Microsoft about your hardware; you keep generic device names and icons.",
+    "risk": "A device may show a generic name/icon instead of a fetched one. Harmless."
+  },
+  "storage-sense": {
+    "why": "Keeps disk space in check automatically instead of letting trash and old downloads pile up.",
+    "risk": "It auto-deletes old Recycle Bin and Downloads files after the number of days you set (default 60) — don't keep things long-term in Downloads."
+  },
+  "remote-desktop": {
+    "why": "Lets you connect to this PC from another machine over Remote Desktop, with Network Level Authentication kept on.",
+    "risk": "Opens an inbound network service. Only enable it on a machine and network you control — reach RDP over a VPN or a trusted LAN, never expose it straight to the internet."
+  },
+  "developer-tools": {
+    "category": "System",
+    "why": "Handy for developers: run elevated commands with sudo, and sideload / run your own unsigned apps.",
+    "risk": "Lowers guardrails on purpose — sudo elevation and running unsigned apps. Reduces protection, but won't damage the OS or hardware. Enable only what you need; off by default."
+  },
+  "gpu-tuning": {
+    "category": "Advanced",
+    "why": "Vendor GPU power-state tweaks (NVIDIA/AMD/Intel) that can cut micro-stutter on some cards.",
+    "risk": "Hardware-specific and MANUAL: the vendor keys only exist after you install the GPU driver, so at first logon it's a no-op — run it by hand afterwards. Wrong-vendor tweaks do nothing."
+  },
+  "disk": {
+    "why": "Replaces the interactive disk step with a fully automatic wipe + standard UEFI layout on disk 0.",
+    "risk": "DESTRUCTIVE: it ERASES disk 0 with no confirmation. Be certain which drive is disk 0 (unplug other disks if unsure). Data loss is permanent."
+  }
+}

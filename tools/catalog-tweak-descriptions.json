@@ -1,0 +1,151 @@
+{
+  "_comment": "Plain-language hover descriptions, keyed module -> tweak-id. Merged into each tweak's 'description' by gen-catalog. Tweak ids must match the generated catalog (hand-authored ids from catalog-tweaks.json; auto-extracted ids are slugified labels).",
+
+  "dark-mode": {
+    "dark-apps": "Switches built-in apps to the dark theme. When on, apps like Settings, File Explorer and the Store show with a dark background and light text instead of white.",
+    "dark-taskbar-start": "Switches the Windows shell to dark. When on, the taskbar, Start menu and notification centre turn dark instead of light."
+  },
+  "debloat-brave": {
+    "brave-rewards-bat-off": "Turns off Brave Rewards, the built-in system that pays you BAT crypto tokens for viewing ads. When on, the Rewards feature and its toolbar icon are gone. Applied as a managed policy, so Brave shows 'managed by your organization'.",
+    "brave-wallet-off": "Disables Brave's built-in crypto Wallet. When on, the Wallet panel and its icon no longer appear. Applied as a managed policy (Brave shows 'managed by your organization').",
+    "brave-vpn-off": "Disables Brave's paid built-in VPN. When on, the VPN button and its option disappear from the browser. Applied as a managed policy (Brave shows 'managed by your organization').",
+    "leo-ai-chat-off": "Turns off Leo, Brave's built-in AI chat assistant. When on, the Leo panel and its sidebar/address-bar entry are removed. Applied as a managed policy (Brave shows 'managed by your organization').",
+    "usage-stats-ping-off": "Stops Brave sending its daily 'still active' usage ping to Brave's servers (used to count active users). Nothing changes visually, there is just less telemetry. Applied as a managed policy (Brave shows 'managed by your organization').",
+    "brave-news-off": "Turns off Brave News, the scrollable news feed on the new-tab page. When on, that feed no longer loads. Applied as a managed policy (Brave shows 'managed by your organization').",
+    "brave-talk-off": "Disables Brave Talk, the built-in video-calling feature. When on, the Brave Talk widget on the new-tab page and its menu option are removed. Applied as a managed policy (Brave shows 'managed by your organization').",
+    "private-tor-windows-off": "Removes the 'New private window with Tor' option that routes browsing through the Tor anonymity network. When on, only ordinary private windows remain available. Applied as a managed policy (Brave shows 'managed by your organization').",
+    "privacy-preserving-analytics-off": "Turns off P3A, Brave's anonymous, privacy-preserving analytics that report aggregate feature usage. Nothing changes visually, Brave just stops sending that data. Applied as a managed policy (Brave shows 'managed by your organization').",
+    "anonymized-url-data-collection-off": "Stops Brave sending anonymised data tied to the web addresses you visit (used to improve its features). Nothing changes visually, there is just less telemetry. Applied as a managed policy (Brave shows 'managed by your organization').",
+    "extended-safe-browsing-reports-off": "Stops Brave sending Google detailed reports about suspicious pages you visit. Normal Safe Browsing protection stays fully on, only the extra detailed telemetry is turned off. Applied as a managed policy (Brave shows 'managed by your organization').",
+    "metrics-reporting-off": "Turns off sending general usage and diagnostic metrics to Brave. Nothing changes visually, there is just less telemetry. Applied as a managed policy (Brave shows 'managed by your organization')."
+  },
+  "desktop-icons": {
+    "this-pc": "Places the 'This PC' icon on the desktop. When on, you get a desktop shortcut that opens straight to your drives and main folders.",
+    "recycle-bin": "Keeps the Recycle Bin icon visible on the desktop. When on, the Recycle Bin sits on the desktop so you can open or empty it directly."
+  },
+  "developer-tools": {
+    "sudo-enabled-in-force-new-window-mode-ne": "Enables the Windows 'sudo' command so you can run a command with admin rights from an ordinary terminal. It uses the safer 'new window' mode, meaning the elevated command opens in a separate window rather than inside your current one.",
+    "developer-mode-sideload-run-unsigned-tru": "Turns on Windows Developer Mode. When on, you can install (sideload) and run your own apps that aren't signed or from the Store, the same as flipping the Developer Mode switch in Settings."
+  },
+  "disable-ai": {
+    "windows-copilot": "Turns off Windows Copilot, the built-in AI assistant. When on, the Copilot button and its side panel no longer open.",
+    "recall-ai-data-analysis-saved-screen-sna": "Turns off Recall, the feature that periodically saves snapshots of your screen so AI can search your past activity. When on, no screen snapshots are taken or analysed.",
+    "click-to-do-the-act-on-what-s-on-screen": "Turns off Click to Do, the feature that lets AI act on text and images shown on your screen. When on, that on-screen suggestion overlay is unavailable.",
+    "microsoft-edge-hide-the-copilot-discover": "Hides the Copilot/Discover sidebar in Microsoft Edge. When on, the sidebar strip and its button are removed from the edge of the browser window."
+  },
+  "disable-bing-search": {
+    "machine-policy-all-users": "Applies a machine-wide rule that stops the Start-menu search box from showing Bing web results and blocks Cortana, for every user. When on, searching returns only local matches (apps, files, settings) with no web answers.",
+    "search-highlights": "Turns off Search Highlights, the illustrated 'on this day' / holiday doodles and trending content in the search box. When on, the search box stays plain.",
+    "per-user-defaults": "Sets the same 'no Bing, no Cortana' choice as the default for each new user account. When on, every new user's search box shows local results only out of the box."
+  },
+  "explorer-ui": {
+    "show-file-ext": "Makes File Explorer show file extensions. When on, filenames appear with their type visible, for example 'report.pdf' instead of just 'report'.",
+    "show-hidden": "Shows files and folders marked as hidden (protected system files still stay hidden). When on, hidden items appear, slightly dimmed, in Explorer.",
+    "open-this-pc": "Makes new File Explorer windows open to 'This PC' rather than the 'Home' view. When on, Explorer starts on your drives and folders instead of a recent-files feed.",
+    "drive-letters-first": "Puts the drive letter before the drive name. When on, drives read like 'C: Windows' instead of 'Windows (C:)'.",
+    "expand-nav-pane": "Makes the left navigation pane automatically unfold to reveal the folder you currently have open. When on, the folder tree expands to show exactly where you are.",
+    "hide-gallery": "Removes the 'Gallery' photo-timeline entry from Explorer's left navigation pane. When on, Gallery no longer appears in the sidebar.",
+    "compact-mode": "Turns on compact view, which tightens the spacing between rows. When on, more files and folders fit on screen with less padding around each one.",
+    "show-super-hidden": "Also reveals protected operating-system files, which stay hidden even with 'show hidden files' on. When on, critical system files become visible, handy for troubleshooting but easy to edit or delete the wrong thing.",
+    "hide-home": "Removes the 'Home' entry from Explorer's navigation pane, leaving This PC. When on, the Home shortcut disappears from the sidebar.",
+    "show-empty-drives": "Shows drives even when they have no disc or card inserted, such as an empty card reader or DVD drive. When on, those empty drives still appear under This PC.",
+    "full-path-title": "Shows the complete folder path in Explorer's title bar. When on, you can see the full location of the folder you're viewing rather than just its name."
+  },
+  "gaming": {
+    "gamedvr-background-recording-off-machine": "Turns off the background game recording used by Xbox Game Bar (Game DVR). When on, Windows no longer records your gameplay in the background, which can free up performance while you play.",
+    "game-mode-on": "Turns on Game Mode, which tells Windows to prioritise the running game and hold back background activity. When on, the active game gets first call on system resources.",
+    "mouse-acceleration-off": "Turns off mouse acceleration ('enhance pointer precision'), so the pointer moves the same distance no matter how fast you flick the mouse. When on, aiming becomes consistent and 1:1, which most gamers prefer."
+  },
+  "misc": {
+    "rtc-kept-in-utc-no-clock-fight-with-a-li": "Tells Windows to read the PC's hardware clock as UTC instead of local time. When on, Windows and a Linux dual-boot stop overwriting each other's clock, so the time no longer jumps by your timezone offset after switching operating systems. Only useful if you dual-boot Linux.",
+    "allow-long-file-paths-260-characters": "Removes the old 260-character limit on file and folder paths. When on, apps that support it can create and open files with very long path names without errors.",
+    "numlock-on-at-the-logon-screen-default-t": "Turns NumLock on at the sign-in screen. When on, the numeric keypad types digits straight away, so you can enter a numeric PIN or password without pressing NumLock first.",
+    "verbose-starting-windows-signing-out-sta": "Shows detailed status messages such as 'Starting Windows' and 'Signing out' during boot and sign-out. When on, you see what Windows is actually doing instead of just a spinning circle."
+  },
+  "performance": {
+    "favor-foreground-apps-short-variable-qua": "Tunes the CPU scheduler to give more attention to whatever app is in front. When on, the window you're actively using gets a larger share of processor time, which can make it feel more responsive.",
+    "multimedia-system-profile": "Reduces how much CPU Windows holds back for background system tasks, leaving more for media and games. When on, foreground playback and games get a bit more processor headroom.",
+    "network-throttling-off": "Removes the network throttle Windows applies to protect audio and video playback. When on, network-heavy apps and downloads can use the connection's full speed.",
+    "per-task-scheduling-for-games": "Raises the CPU, GPU and disk priority Windows gives to programs it recognises as games. When on, games are scheduled ahead of ordinary background tasks."
+  },
+  "privacy-telemetry": {
+    "activity-history": "Turns off Activity History (Timeline), so Windows stops recording and uploading a log of the apps and files you use. When on, that history is no longer collected.",
+    "advertising-id": "Turns off the per-user advertising ID that apps use to profile you for targeted ads. When on, apps see a blank ad ID, so in-app advertising becomes less personalised.",
+    "tailored-experiences": "Stops Windows using your diagnostic data to show personalised tips, ads and suggestions. When on, you get fewer tailored prompts scattered through the OS.",
+    "suggested-content": "Turns off the promoted content Windows sprinkles around, Start-menu app promos, Settings suggestions, tips, and the quiet auto-install of sponsored apps. When on, the Start menu and Settings stop showing these ads and stop silently installing suggested apps.",
+    "find-my-device": "Turns off Find My Device, which lets you locate this PC remotely through your Microsoft account. When on, that location tracking is disabled and the feature is switched off in Settings.",
+    "troubleshooters-off": "Sets Windows' recommended troubleshooters to never run on their own. When on, Windows won't automatically apply background 'recommended' fixes to your system.",
+    "share-across-devices-off": "Turns off 'Share across devices', the cross-device handoff feature. When on, content no longer hands off between your linked devices, which also stops cloud clipboard sync between devices (your local Win+V history still works).",
+    "resume-off": "Turns off 'Resume' / 'continue on this PC', which hands things like OneDrive files from your phone over to the PC. When on, that continue-on-this-PC prompt no longer appears."
+  },
+  "taskbar-startmenu": {
+    "align-left": "Moves the taskbar icons and Start button to the left edge instead of the centre. When on, Start sits in the bottom-left corner like earlier versions of Windows.",
+    "widgets-off": "Removes the Widgets button (the weather and news panel) from the taskbar. When on, the widgets icon and its slide-out panel are gone.",
+    "chat-off": "Removes the Chat button (personal Microsoft Teams) from the taskbar. When on, that chat icon disappears.",
+    "task-view-button-off": "Removes the Task View button (virtual desktops and open-window overview) from the taskbar. When on, the icon is hidden, though the Win+Tab shortcut still works.",
+    "add-end-task-to-the-taskbar-right-click": "Adds an 'End task' item to the right-click menu of taskbar apps. When on, you can force-close a frozen app straight from the taskbar without opening Task Manager.",
+    "0-hidden-1-icon-2-box-3-box-label": "Shrinks the taskbar search to a small magnifying-glass icon instead of a full search box. When on, the wide search bar is replaced by a compact icon, freeing up taskbar space.",
+    "cloud-recommended-suggestions-off": "Turns off the cloud-driven 'Recommended' suggestions in the Start menu (promoted apps and tips). When on, the Recommended area stops showing suggested content.",
+    "don-t-list-recently-opened-files": "Stops Windows listing recently opened files in Start and in jump lists. When on, your recent documents no longer show up there.",
+    "don-t-list-recently-added-used-apps": "Stops Start from tracking and showing your most-used and recently added apps. When on, those app suggestions no longer appear in the Start menu.",
+    "don-t-show-recently-added-apps-in-start": "Hides the 'Recently added' apps list in the Start menu. When on, newly installed apps are no longer highlighted at the top of Start.",
+    "add-run-as-different-user-to-start": "Adds 'Run as different user' to the right-click menu of apps in Start. When on, you can launch an app under another user account directly from the Start menu."
+  },
+  "visual-effects": {
+    "no-transparency": "Turns off the transparency and blur effects on the taskbar, Start menu and other surfaces. When on, those surfaces become solid, which can feel a touch faster.",
+    "no-taskbar-animations": "Turns off the small taskbar animations. When on, taskbar buttons appear and disappear instantly instead of sliding.",
+    "instant-menus": "Removes the built-in delay before menus open. When on, right-click menus and submenus pop up instantly instead of after a short pause.",
+    "no-minimize-maximize-animation": "Turns off the animation when you minimise or maximise a window. When on, windows snap open and closed instantly instead of zooming.",
+    "no-peek-at-desktop": "Turns off Aero Peek, which previews the desktop when you hover the far-right corner of the taskbar. When on, hovering there no longer makes your windows go transparent.",
+    "no-start-menu-startup-delay": "Removes the deliberate delay Windows adds before launching your startup apps after sign-in. When on, startup programs load immediately instead of after a pause.",
+    "always-show-scrollbars-no-auto-hide": "Keeps scrollbars permanently visible instead of hiding them until you hover. When on, scrollbars stay as a solid, easy-to-grab bar at all times.",
+    "clipboard-history-win-v": "Turns on clipboard history. When on, pressing Win+V shows a list of the last several things you copied so you can paste any one of them back."
+  },
+  "windows-update": {
+    "delivery-optimization-download-from-micr": "Turns off peer-to-peer update sharing, so updates download only from Microsoft rather than from or to other PCs on your network or the internet. When on, your PC also stops uploading update files to other machines.",
+    "never-auto-reboot-while-a-user-is-signed": "Stops Windows Update from automatically restarting the PC while someone is signed in. When on, updates wait for you to restart yourself instead of forcing a reboot in the middle of your work."
+  },
+
+  "debloat-appx": {
+    "bing-news": "Removes the Bing/MSN News app. Nothing else on the system depends on it.",
+    "bing-weather": "Removes the MSN Weather app. The taskbar weather widget uses a separate feed and keeps working.",
+    "bing-search": "Removes the package that shows Bing web results in the Start-menu search box, so search returns only local matches (apps, files, settings). This matches the disable-bing-search module.",
+    "media-player": "Removes Windows Media Player (the modern music app). You can reinstall it from the Store if you want it back.",
+    "films-tv": "Removes the Films & TV video app. Reinstallable from the Store.",
+    "feedback-hub": "Removes the Feedback Hub app used to send feedback to Microsoft.",
+    "solitaire": "Removes the Microsoft Solitaire Collection game.",
+    "people": "Removes the People (contacts) app, which Microsoft retired at the end of 2024 and folded into the new Outlook.",
+    "mail-calendar": "Removes the old Mail & Calendar app, retired at the end of 2024. Use the new Outlook or another mail client instead.",
+    "clipchamp": "Removes the Clipchamp video editor.",
+    "teams-personal": "Removes the personal Teams / Chat app. The work-or-school Teams app is a separate package and is not touched.",
+    "todo": "Removes Microsoft To Do, the task app that syncs with Outlook and Planner.",
+    "power-automate": "Removes Power Automate Desktop, used to build desktop automation flows.",
+    "xbox-gamepass": "Removes the Xbox app, which is the Game Pass client used to install and launch PC Game Pass games. Keep it if you use Xbox or Game Pass. (Xbox Game Bar and game captures are a separate component and stay.)",
+    "get-help": "Removes the Get Help app. A few Windows troubleshooters and help links route through it and may stop opening.",
+    "tips": "Removes the Tips app that shows Windows walkthroughs.",
+    "maps": "Removes the Maps app.",
+    "office-hub": "Removes the Microsoft 365 (Office) hub tile only — your installed Office apps are not affected.",
+    "clock": "Removes the Clock app — you lose alarms, timers, the stopwatch, world clock and Focus Sessions. Keep it if you rely on any of those.",
+    "mixed-reality": "Removes the Windows Mixed Reality Portal, a feature Microsoft has deprecated.",
+    "cortana": "Removes the Cortana app, which Microsoft has retired — it no longer works as an assistant."
+  },
+
+  "optional-features": {
+    "hyper-v": "Turns on Hyper-V, Windows' built-in virtualization for running virtual machines. Needs Windows Pro/Enterprise and a reboot. It can conflict with some third-party hypervisors (VMware/VirtualBox) and certain game anti-cheat.",
+    "wsl": "Turns on the Windows Subsystem for Linux (the legacy component) so you can run Linux distributions. The newer winget 'Microsoft.WSL' app is the modern alternative.",
+    "vm-platform": "Turns on Virtual Machine Platform, the low-level component WSL2 and sandbox features rely on.",
+    "sandbox": "Turns on Windows Sandbox, a throwaway isolated desktop for safely testing untrusted apps. Needs Windows Pro/Enterprise and a reboot.",
+    "netfx35": "Turns on .NET Framework 3.5, which some older apps still need. It may require the Windows install media or an internet connection to finish."
+  },
+
+  "security": {
+    "bitlocker-auto-off": "Stops Windows silently turning on BitLocker device encryption during setup. Prevents a surprise 'enter your recovery key' lockout on a PC you didn't mean to encrypt. This is the safe default.",
+    "uac-no-prompt": "Stops User Account Control ever asking for confirmation when a program wants admin rights — it just silently allows it. The UAC engine stays on, but you lose the 'are you sure?' prompt, so malware can elevate without you noticing. Lowers your security.",
+    "uac-disable": "Fully turns off User Account Control: programs get full admin rights with no prompt at all. It also breaks many Store/UWP apps and some Settings pages. Strongly discouraged.",
+    "smartscreen-off": "Turns off SmartScreen, so Windows and Edge stop warning you about malicious or unknown downloads, apps and websites. You lose a key layer of malware protection.",
+    "defender-cloud-off": "Stops Microsoft Defender sending suspicious files to Microsoft's cloud for a faster verdict. Local real-time scanning stays on, but brand-new threats are caught a bit slower. (Ignored while Tamper Protection is on.)",
+    "defender-samples-off": "Stops Defender automatically uploading sample files to Microsoft — a privacy trade-off that slightly weakens cloud detection. (Ignored while Tamper Protection is on.)",
+    "defender-realtime-off": "Turns off Defender's live scanning, so files are no longer checked as they're opened or run. Defender stays installed but is not actively protecting you. (Ignored while Tamper Protection is on.)",
+    "defender-disable": "Disables the Microsoft Defender antivirus engine entirely — the PC then has no built-in antivirus. Only do this if you run another antivirus. (Ignored while Tamper Protection is on; you must turn that off by hand first.)"
+  }
+}
