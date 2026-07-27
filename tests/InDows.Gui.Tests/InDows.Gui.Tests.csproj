@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <UseWPF>true</UseWPF>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <!-- Used to fabricate a real WinZip AES-256 vault in the restore round-trip test. -->
+    <PackageReference Include="SharpZipLib" Version="1.4.2" />
+    <!-- CI reporting: JUnit for the GitLab "Tests" tab + Cobertura coverage (XPlat collector). -->
+    <PackageReference Include="JunitXml.TestLogger" Version="4.1.0" />
+    <PackageReference Include="coverlet.collector" Version="6.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\InDows.Gui\InDows.Gui.csproj" />
+  </ItemGroup>
+
+  <!-- The real bundled base + catalog, so a test can graft real modules onto the actual shipping base. -->
+  <ItemGroup>
+    <Content Include="..\..\src\InDows.Gui\data\autounattend.base.xml" Link="data\autounattend.base.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\src\InDows.Gui\data\modules.catalog.json" Link="data\modules.catalog.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>
