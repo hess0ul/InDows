@@ -31,6 +31,9 @@ variables:
   # layout and therefore stays on the pipeline schedule (this file is public on github.com).
   GH_REPO: "hess0ul/InDows"
   PKG_REGISTRY_NAME: "indows"
+  # Where French is functional data rather than a stray comment: the catalog sources carry
+  # locale labels written in their own language. Everything else is scanned, JSON included.
+  LEAK_FR_EXCLUDE: ":!*/data/* :!data/* :!tools/catalog-params.json"
 
 workflow:
   rules:
