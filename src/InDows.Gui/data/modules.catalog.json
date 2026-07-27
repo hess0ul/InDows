@@ -1,0 +1,1635 @@
+{
+  "modules": [
+    {
+      "name": "autologon",
+      "category": "Identity & setup",
+      "risk": "advanced",
+      "kind": "snippet",
+      "anchor": "account",
+      "description": "Sign in without typing a password (pairs with `username`). XML snippet; cleartext password.",
+      "why": "Skips the password prompt at every boot — handy for a home PC or a VM you reboot often.",
+      "riskNote": "Stores the password in the registry in clear text. Don't use it on a shared or portable machine.",
+      "content": "<!-- ============================================================================\r\n     InDows module: autologon\r\n     Signs the account in automatically at boot, without typing the password. Pairs with the\r\n     'username' module (same account).\r\n\r\n     WHERE: settings pass=\"oobeSystem\" > component \"Microsoft-Windows-Shell-Setup\"\r\n     ANCHOR (a comment in the base) named:   [InDows:module] account\r\n\r\n     REPLACE: __USERNAME__ (the account) and __PASSWORD__ (its password; empty value if no password).\r\n     PERMANENT auto-logon as written. For a ONE-TIME auto-logon, add <LogonCount>1</LogonCount>.\r\n\r\n     SECURITY: the password is stored in CLEAR TEXT in autounattend.xml. Never commit a real password\r\n     to a public repo. Auto-logon also means anyone who powers on the PC is logged in as you.\r\n     ============================================================================ -->\r\n<AutoLogon>\r\n    <Username>__USERNAME__</Username>\r\n    <Enabled>true</Enabled>\r\n    <Password>\r\n        <Value>__PASSWORD__</Value>\r\n        <PlainText>true</PlainText>\r\n    </Password>\r\n</AutoLogon>",
+      "tweaks": [],
+      "params": [
+        {
+          "key": "USERNAME",
+          "label": "Account name (same as the account you sign in as)",
+          "kind": "text",
+          "default": "User",
+          "options": []
+        },
+        {
+          "key": "PASSWORD",
+          "label": "Password (leave blank for none; stored in clear text)",
+          "kind": "password",
+          "default": "",
+          "options": []
+        }
+      ]
+    },
+    {
+      "name": "computer-name",
+      "category": "Identity & setup",
+      "risk": "safe",
+      "kind": "snippet",
+      "anchor": "specialize-shell-setup",
+      "description": "Identity the base leaves interactive; these automate it. XML snippets (see each module folder).",
+      "why": "Names the PC for you, so you don't type it during setup and it stays consistent on the network.",
+      "riskNote": "Cosmetic and reversible. Just avoid characters Windows rejects (spaces, most symbols).",
+      "content": "<!-- ============================================================================\r\n     InDows module: computer-name\r\n     Sets the PC name automatically. Without this module Windows assigns a random\r\n     name (e.g. DESKTOP-AB12CD3) which you can change later in Settings.\r\n\r\n     WHERE: settings pass=\"specialize\" > component \"Microsoft-Windows-Shell-Setup\"\r\n     ANCHOR (a comment in the base) named:   [InDows:module] specialize-shell-setup\r\n\r\n     REPLACE: __COMPUTERNAME__\r\n       - max 15 characters\r\n       - letters, digits and hyphens only (no spaces, no dots)\r\n       - must not be all-numeric\r\n       - use a single \"*\" to let Windows generate a random name explicitly\r\n     ============================================================================ -->\r\n<ComputerName>__COMPUTERNAME__</ComputerName>",
+      "tweaks": [],
+      "params": [
+        {
+          "key": "COMPUTERNAME",
+          "label": "PC name (max 15 chars: letters, digits, hyphens)",
+          "kind": "text",
+          "default": "PC",
+          "options": []
+        }
+      ]
+    },
+    {
+      "name": "context-menu",
+      "category": "UI & shell",
+      "risk": "safe",
+      "kind": "script",
+      "anchor": "default-user-scripts",
+      "description": "Restore the Windows 10 classic right-click menu (removes \"Show more options\"). reg [U] CLSID `InprocServer32`.",
+      "why": "Brings back the full Windows 10 right-click menu, so every action is one click instead of hidden behind \"Show more options\".",
+      "riskNote": "Purely a shell preference. Revert by deleting one registry key.",
+      "content": "# InDows module: context-menu\r\n# Restores the Windows 10 classic right-click menu (no \"Show more options\" extra click).\r\n# Anchor: [InDows:module] default-user-scripts\r\n# Mechanism: register an EMPTY InprocServer32 for the Win11 menu CLSID, which disables it.\r\n\r\n$ErrorActionPreference = 'Continue'\r\n$log = 'C:\\Windows\\Temp\\InDows-context-menu.log'\r\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\r\n\r\n$key = 'Registry::HKEY_USERS\\DefaultUser\\Software\\Classes\\CLSID\\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\\InprocServer32'\r\n\r\nLog '=== context-menu start ==='\r\nNew-Item -Path $key -Force -ErrorAction SilentlyContinue | Out-Null\r\n# Set the key's (Default) value to an EMPTY string (this is what disables the new menu).\r\nSet-Item -Path $key -Value '' -ErrorAction SilentlyContinue\r\nLog '=== context-menu done ==='",
+      "tweaks": [],
+      "params": []
+    },
+    {
+      "name": "dark-mode",
+      "category": "Identity & setup",
+      "risk": "safe",
+      "kind": "script",
+      "anchor": "default-user-scripts",
+      "description": "Dark theme for new users — apps and shell each optional. reg [U].",
+      "why": "Sets a dark theme for every new user out of the box, easier on the eyes.",
+      "riskNote": "Cosmetic. Apps and shell can be switched back any time in Settings.",
+      "content": "# InDows module: dark-mode\r\n# Sets the dark theme for new users. Anchor: [InDows:module] default-user-scripts\r\n# OPTIONS: comment out a line to keep that part light (e.g. dark apps + light taskbar).\r\n\r\n$ErrorActionPreference = 'Continue'\r\n$log = 'C:\\Windows\\Temp\\InDows-dark-mode.log'\r\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\r\nfunction RegDword([string]$p, [string]$n, [int]$v) {\r\n    New-Item -Path $p -Force -ErrorAction SilentlyContinue | Out-Null\r\n    New-ItemProperty -Path $p -Name $n -Value $v -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null\r\n}\r\n$P = 'Registry::HKEY_USERS\\DefaultUser\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize'\r\n\r\nLog '=== dark-mode start ==='\r\nRegDword $P 'AppsUseLightTheme'   0   # 0 = dark apps      (comment out to keep apps light)\r\nRegDword $P 'SystemUsesLightTheme' 0  # 0 = dark taskbar/Start (comment out to keep the shell light)\r\nLog '=== dark-mode done ==='",
+      "tweaks": [
+        {
+          "id": "dark-apps",
+          "label": "Dark apps",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword $P 'AppsUseLightTheme'   0",
+          "description": "Switches built-in apps to the dark theme. When on, apps like Settings, File Explorer and the Store show with a dark background and light text instead of white."
+        },
+        {
+          "id": "dark-taskbar-start",
+          "label": "Dark taskbar/Start",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword $P 'SystemUsesLightTheme' 0",
+          "description": "Switches the Windows shell to dark. When on, the taskbar, Start menu and notification centre turn dark instead of light."
+        }
+      ],
+      "params": []
+    },
+    {
+      "name": "debloat-appx",
+      "category": "Debloat & apps",
+      "risk": "advanced",
+      "kind": "script",
+      "anchor": "specialize-scripts",
+      "description": "Remove preinstalled Store apps (provisioned + per-user) so new users don't get them.",
+      "why": "Removes preinstalled Store apps you don't want — tick them one by one (the safe, low-regret ones are pre-ticked).",
+      "riskNote": "Each app is an individual choice, on top of the base. NOTE: the InDows base already removes a fixed set of Store apps unconditionally, so for those, un-ticking here will NOT bring them back. The Xbox app is the Game Pass client (keep it if you play Game Pass); the Clock app holds alarms, timers and Focus Sessions — both start unticked. Mail & Calendar and People are already retired by Microsoft.",
+      "content": "# InDows module: debloat-appx\n# Removes preinstalled Store apps. Each line below removes ONE app; the InDows GUI ticks/unticks them\n# individually (a commented line is kept). Removing a provisioned package stops NEW users getting it too.\n# Anchor: [InDows:module] specialize-scripts\n#\n# NOTE: run STANDALONE (outside the GUI) this removes every app listed below. Through the InDows GUI you\n# choose exactly which ones to remove; the safe, low-regret apps are pre-ticked, the rest are left to you.\n\n$ErrorActionPreference = 'Continue'\n$log = 'C:\\Windows\\Temp\\InDows-debloat-appx.log'\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\nfunction Remove-App([string]$a) {\n    Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue |\n        Where-Object { $_.DisplayName -eq $a } |\n        ForEach-Object { Remove-AppxProvisionedPackage -Online -PackageName $_.PackageName -ErrorAction SilentlyContinue | Out-Null; Log \"provisioned removed: $a\" }\n    Get-AppxPackage -AllUsers -Name $a -ErrorAction SilentlyContinue |\n        ForEach-Object { Remove-AppxPackage -Package $_.PackageFullName -AllUsers -ErrorAction SilentlyContinue; Log \"installed removed: $a\" }\n}\n\nLog '=== debloat-appx start ==='\n# === start ===  (each line = one app the GUI can toggle)\nRemove-App 'Microsoft.BingNews'                     # Bing News\nRemove-App 'Microsoft.BingWeather'                  # MSN Weather (the taskbar weather widget is unaffected)\nRemove-App 'Microsoft.BingSearch'                   # web results in the Start-menu search box\nRemove-App 'Microsoft.ZuneMusic'                    # Windows Media Player (music)\nRemove-App 'Microsoft.ZuneVideo'                    # Films & TV (video)\nRemove-App 'Microsoft.WindowsFeedbackHub'           # Feedback Hub\nRemove-App 'Microsoft.MicrosoftSolitaireCollection' # Solitaire Collection\nRemove-App 'Microsoft.People'                       # People (contacts; retired Dec 2024)\nRemove-App 'Microsoft.windowscommunicationsapps'    # Mail & Calendar (retired Dec 2024, use new Outlook)\nRemove-App 'Clipchamp.Clipchamp'                    # Clipchamp video editor\nRemove-App 'MicrosoftTeams'                         # personal Teams / Chat (work Teams is a separate app)\nRemove-App 'Microsoft.Todos'                        # Microsoft To Do\nRemove-App 'Microsoft.PowerAutomateDesktop'         # Power Automate (desktop flows)\nRemove-App 'Microsoft.GamingApp'                    # Xbox app = the Game Pass client (KEEP if you use Game Pass)\nRemove-App 'Microsoft.GetHelp'                      # Get Help (some troubleshooters route through it)\nRemove-App 'Microsoft.Getstarted'                   # Tips\nRemove-App 'Microsoft.WindowsMaps'                  # Maps\nRemove-App 'Microsoft.MicrosoftOfficeHub'           # Microsoft 365 (Office) hub tile (not Office itself)\nRemove-App 'Microsoft.WindowsAlarms'                # Clock (alarms, timers, Focus Sessions)\nRemove-App 'Microsoft.MixedReality.Portal'          # Mixed Reality Portal (deprecated)\nRemove-App 'Microsoft.549981C3F5F10'                # Cortana (retired)\n# === done ===\nLog '=== debloat-appx done ==='",
+      "tweaks": [
+        {
+          "id": "bing-news",
+          "label": "Bing News",
+          "risk": "safe",
+          "default": true,
+          "content": "Remove-App 'Microsoft.BingNews'",
+          "description": "Removes the Bing/MSN News app. Nothing else on the system depends on it."
+        },
+        {
+          "id": "bing-weather",
+          "label": "MSN Weather (taskbar widget stays)",
+          "risk": "safe",
+          "default": true,
+          "content": "Remove-App 'Microsoft.BingWeather'",
+          "description": "Removes the MSN Weather app. The taskbar weather widget uses a separate feed and keeps working."
+        },
+        {
+          "id": "bing-search",
+          "label": "Bing web results in Start search",
+          "risk": "safe",
+          "default": true,
+          "content": "Remove-App 'Microsoft.BingSearch'",
+          "description": "Removes the package that shows Bing web results in the Start-menu search box, so search returns only local matches (apps, files, settings). This matches the disable-bing-search module."
+        },
+        {
+          "id": "media-player",
+          "label": "Windows Media Player (music)",
+          "risk": "safe",
+          "default": true,
+          "content": "Remove-App 'Microsoft.ZuneMusic'",
+          "description": "Removes Windows Media Player (the modern music app). You can reinstall it from the Store if you want it back."
+        },
+        {
+          "id": "films-tv",
+          "label": "Films & TV (video)",
+          "risk": "safe",
+          "default": true,
+          "content": "Remove-App 'Microsoft.ZuneVideo'",
+          "description": "Removes the Films & TV video app. Reinstallable from the Store."
+        },
+        {
+          "id": "feedback-hub",
+          "label": "Feedback Hub",
+          "risk": "safe",
+          "default": true,
+          "content": "Remove-App 'Microsoft.WindowsFeedbackHub'",
+          "description": "Removes the Feedback Hub app used to send feedback to Microsoft."
+        },
+        {
+          "id": "solitaire",
+          "label": "Solitaire Collection",
+          "risk": "safe",
+          "default": true,
+          "content": "Remove-App 'Microsoft.MicrosoftSolitaireCollection'",
+          "description": "Removes the Microsoft Solitaire Collection game."
+        },
+        {
+          "id": "people",
+          "label": "People (contacts, retired)",
+          "risk": "safe",
+          "default": true,
+          "content": "Remove-App 'Microsoft.People'",
+          "description": "Removes the People (contacts) app, which Microsoft retired at the end of 2024 and folded into the new Outlook."
+        },
+        {
+          "id": "mail-calendar",
+          "label": "Mail & Calendar (legacy, retired)",
+          "risk": "safe",
+          "default": true,
+          "content": "Remove-App 'Microsoft.windowscommunicationsapps'",
+          "description": "Removes the old Mail & Calendar app, retired at the end of 2024. Use the new Outlook or another mail client instead."
+        },
+        {
+          "id": "clipchamp",
+          "label": "Clipchamp",
+          "risk": "safe",
+          "default": true,
+          "content": "Remove-App 'Clipchamp.Clipchamp'",
+          "description": "Removes the Clipchamp video editor."
+        },
+        {
+          "id": "teams-personal",
+          "label": "Teams — personal / Chat",
+          "risk": "safe",
+          "default": true,
+          "content": "Remove-App 'MicrosoftTeams'",
+          "description": "Removes the personal Teams / Chat app. The work-or-school Teams app is a separate package and is not touched."
+        },
+        {
+          "id": "todo",
+          "label": "Microsoft To Do",
+          "risk": "safe",
+          "default": true,
+          "content": "Remove-App 'Microsoft.Todos'",
+          "description": "Removes Microsoft To Do, the task app that syncs with Outlook and Planner."
+        },
+        {
+          "id": "power-automate",
+          "label": "Power Automate (desktop)",
+          "risk": "safe",
+          "default": true,
+          "content": "Remove-App 'Microsoft.PowerAutomateDesktop'",
+          "description": "Removes Power Automate Desktop, used to build desktop automation flows."
+        },
+        {
+          "id": "xbox-gamepass",
+          "label": "Xbox app (Game Pass client)",
+          "risk": "advanced",
+          "default": false,
+          "content": "Remove-App 'Microsoft.GamingApp'",
+          "description": "Removes the Xbox app, which is the Game Pass client used to install and launch PC Game Pass games. Keep it if you use Xbox or Game Pass. (Xbox Game Bar and game captures are a separate component and stay.)"
+        },
+        {
+          "id": "get-help",
+          "label": "Get Help",
+          "risk": "safe",
+          "default": false,
+          "content": "Remove-App 'Microsoft.GetHelp'",
+          "description": "Removes the Get Help app. A few Windows troubleshooters and help links route through it and may stop opening."
+        },
+        {
+          "id": "tips",
+          "label": "Tips",
+          "risk": "safe",
+          "default": false,
+          "content": "Remove-App 'Microsoft.Getstarted'",
+          "description": "Removes the Tips app that shows Windows walkthroughs."
+        },
+        {
+          "id": "maps",
+          "label": "Maps",
+          "risk": "safe",
+          "default": false,
+          "content": "Remove-App 'Microsoft.WindowsMaps'",
+          "description": "Removes the Maps app."
+        },
+        {
+          "id": "office-hub",
+          "label": "Microsoft 365 (Office) hub",
+          "risk": "safe",
+          "default": false,
+          "content": "Remove-App 'Microsoft.MicrosoftOfficeHub'",
+          "description": "Removes the Microsoft 365 (Office) hub tile only — your installed Office apps are not affected."
+        },
+        {
+          "id": "clock",
+          "label": "Clock (alarms, timers, Focus)",
+          "risk": "advanced",
+          "default": false,
+          "content": "Remove-App 'Microsoft.WindowsAlarms'",
+          "description": "Removes the Clock app — you lose alarms, timers, the stopwatch, world clock and Focus Sessions. Keep it if you rely on any of those."
+        },
+        {
+          "id": "mixed-reality",
+          "label": "Mixed Reality Portal (deprecated)",
+          "risk": "safe",
+          "default": false,
+          "content": "Remove-App 'Microsoft.MixedReality.Portal'",
+          "description": "Removes the Windows Mixed Reality Portal, a feature Microsoft has deprecated."
+        },
+        {
+          "id": "cortana",
+          "label": "Cortana (retired)",
+          "risk": "safe",
+          "default": false,
+          "content": "Remove-App 'Microsoft.549981C3F5F10'",
+          "description": "Removes the Cortana app, which Microsoft has retired — it no longer works as an assistant."
+        }
+      ],
+      "params": []
+    },
+    {
+      "name": "debloat-brave",
+      "category": "Debloat & apps",
+      "risk": "advanced",
+      "kind": "script",
+      "anchor": "specialize-scripts",
+      "description": "Turn off Brave's built-in extras via enterprise policy: Rewards/Wallet/VPN, Leo AI, Tor, News/Talk, and telemetry",
+      "why": "Strips Brave down to a browser — no Rewards/Wallet/VPN/AI/Tor and no telemetry pings.",
+      "riskNote": "Only affects Brave. Turn a line back on if you actually use that feature.",
+      "content": "# InDows module: debloat-brave\n# Turn off Brave's built-in extras via enterprise policy (Rewards, Wallet, VPN, AI, Tor, telemetry...).\n# Each line is independent -- comment out what you want to keep. Anchor: [InDows:module] specialize-scripts\n\n$ErrorActionPreference = 'Continue'\n$log = 'C:\\Windows\\Temp\\InDows-debloat-brave.log'\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\nfunction RegDword([string]$p, [string]$n, [int]$v) {\n    New-Item -Path $p -Force -ErrorAction SilentlyContinue | Out-Null\n    New-ItemProperty -Path $p -Name $n -Value $v -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null\n}\n$b = 'HKLM:\\SOFTWARE\\Policies\\BraveSoftware\\Brave'\n\nLog '=== debloat-brave start ==='\nRegDword $b 'BraveRewardsDisabled' 1                       # Brave Rewards / BAT off\nRegDword $b 'BraveWalletDisabled' 1                        # Brave Wallet off\nRegDword $b 'BraveVPNDisabled' 1                           # Brave VPN off\nRegDword $b 'BraveAIChatEnabled' 0                         # Leo AI chat off\nRegDword $b 'BraveStatsPingEnabled' 0                      # usage stats ping off\nRegDword $b 'BraveNewsDisabled' 1                          # Brave News off\nRegDword $b 'BraveTalkDisabled' 1                          # Brave Talk off\nRegDword $b 'TorDisabled' 1                                # private Tor windows off\nRegDword $b 'BraveP3AEnabled' 0                            # privacy-preserving analytics off\nRegDword $b 'UrlKeyedAnonymizedDataCollectionEnabled' 0    # anonymized URL data collection off\nRegDword $b 'SafeBrowsingExtendedReportingEnabled' 0       # extended safe-browsing reports off\nRegDword $b 'MetricsReportingEnabled' 0                    # metrics reporting off\nLog '=== debloat-brave done ==='",
+      "tweaks": [
+        {
+          "id": "brave-rewards-bat-off",
+          "label": "Brave Rewards / BAT off",
+          "risk": "advanced",
+          "default": true,
+          "content": "RegDword $b 'BraveRewardsDisabled' 1",
+          "description": "Turns off Brave Rewards, the built-in system that pays you BAT crypto tokens for viewing ads. When on, the Rewards feature and its toolbar icon are gone. Applied as a managed policy, so Brave shows 'managed by your organization'."
+        },
+        {
+          "id": "brave-wallet-off",
+          "label": "Brave Wallet off",
+          "risk": "advanced",
+          "default": true,
+          "content": "RegDword $b 'BraveWalletDisabled' 1",
+          "description": "Disables Brave's built-in crypto Wallet. When on, the Wallet panel and its icon no longer appear. Applied as a managed policy (Brave shows 'managed by your organization')."
+        },
+        {
+          "id": "brave-vpn-off",
+          "label": "Brave VPN off",
+          "risk": "advanced",
+          "default": true,
+          "content": "RegDword $b 'BraveVPNDisabled' 1",
+          "description": "Disables Brave's paid built-in VPN. When on, the VPN button and its option disappear from the browser. Applied as a managed policy (Brave shows 'managed by your organization')."
+        },
+        {
+          "id": "leo-ai-chat-off",
+          "label": "Leo AI chat off",
+          "risk": "advanced",
+          "default": true,
+          "content": "RegDword $b 'BraveAIChatEnabled' 0",
+          "description": "Turns off Leo, Brave's built-in AI chat assistant. When on, the Leo panel and its sidebar/address-bar entry are removed. Applied as a managed policy (Brave shows 'managed by your organization')."
+        },
+        {
+          "id": "usage-stats-ping-off",
+          "label": "Usage stats ping off",
+          "risk": "advanced",
+          "default": true,
+          "content": "RegDword $b 'BraveStatsPingEnabled' 0",
+          "description": "Stops Brave sending its daily 'still active' usage ping to Brave's servers (used to count active users). Nothing changes visually, there is just less telemetry. Applied as a managed policy (Brave shows 'managed by your organization')."
+        },
+        {
+          "id": "brave-news-off",
+          "label": "Brave News off",
+          "risk": "advanced",
+          "default": true,
+          "content": "RegDword $b 'BraveNewsDisabled' 1",
+          "description": "Turns off Brave News, the scrollable news feed on the new-tab page. When on, that feed no longer loads. Applied as a managed policy (Brave shows 'managed by your organization')."
+        },
+        {
+          "id": "brave-talk-off",
+          "label": "Brave Talk off",
+          "risk": "advanced",
+          "default": true,
+          "content": "RegDword $b 'BraveTalkDisabled' 1",
+          "description": "Disables Brave Talk, the built-in video-calling feature. When on, the Brave Talk widget on the new-tab page and its menu option are removed. Applied as a managed policy (Brave shows 'managed by your organization')."
+        },
+        {
+          "id": "private-tor-windows-off",
+          "label": "Private Tor windows off",
+          "risk": "advanced",
+          "default": true,
+          "content": "RegDword $b 'TorDisabled' 1",
+          "description": "Removes the 'New private window with Tor' option that routes browsing through the Tor anonymity network. When on, only ordinary private windows remain available. Applied as a managed policy (Brave shows 'managed by your organization')."
+        },
+        {
+          "id": "privacy-preserving-analytics-off",
+          "label": "Privacy-preserving analytics off",
+          "risk": "advanced",
+          "default": true,
+          "content": "RegDword $b 'BraveP3AEnabled' 0",
+          "description": "Turns off P3A, Brave's anonymous, privacy-preserving analytics that report aggregate feature usage. Nothing changes visually, Brave just stops sending that data. Applied as a managed policy (Brave shows 'managed by your organization')."
+        },
+        {
+          "id": "anonymized-url-data-collection-off",
+          "label": "Anonymized URL data collection off",
+          "risk": "advanced",
+          "default": true,
+          "content": "RegDword $b 'UrlKeyedAnonymizedDataCollectionEnabled' 0",
+          "description": "Stops Brave sending anonymised data tied to the web addresses you visit (used to improve its features). Nothing changes visually, there is just less telemetry. Applied as a managed policy (Brave shows 'managed by your organization')."
+        },
+        {
+          "id": "extended-safe-browsing-reports-off",
+          "label": "Extended safe-browsing reports off",
+          "risk": "advanced",
+          "default": true,
+          "content": "RegDword $b 'SafeBrowsingExtendedReportingEnabled' 0",
+          "description": "Stops Brave sending Google detailed reports about suspicious pages you visit. Normal Safe Browsing protection stays fully on, only the extra detailed telemetry is turned off. Applied as a managed policy (Brave shows 'managed by your organization')."
+        },
+        {
+          "id": "metrics-reporting-off",
+          "label": "Metrics reporting off",
+          "risk": "advanced",
+          "default": true,
+          "content": "RegDword $b 'MetricsReportingEnabled' 0",
+          "description": "Turns off sending general usage and diagnostic metrics to Brave. Nothing changes visually, there is just less telemetry. Applied as a managed policy (Brave shows 'managed by your organization')."
+        }
+      ],
+      "params": []
+    },
+    {
+      "name": "default-terminal",
+      "category": "UI & shell",
+      "risk": "safe",
+      "kind": "script",
+      "anchor": "default-user-scripts",
+      "description": "Make Windows Terminal the default terminal host (`DelegationConsole`/`DelegationTerminal` under `HKCU\\Console\\%%Startup`).",
+      "why": "New console windows open in the modern, tabbed Windows Terminal instead of the legacy host.",
+      "riskNote": "Cosmetic and reversible. Needs Windows Terminal installed (Windows 11 ships it).",
+      "content": "# InDows module: default-terminal\n# Make Windows Terminal the default terminal host for new users. Anchor: [InDows:module] default-user-scripts\n\n$ErrorActionPreference = 'Continue'\n$log = 'C:\\Windows\\Temp\\InDows-default-terminal.log'\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\nfunction RegString([string]$p, [string]$n, [string]$v) {\n    New-Item -Path $p -Force -ErrorAction SilentlyContinue | Out-Null\n    New-ItemProperty -Path $p -Name $n -Value $v -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null\n}\n$U = 'Registry::HKEY_USERS\\DefaultUser'\n\nLog '=== default-terminal start ==='\n# Default terminal application = Windows Terminal (both delegation GUIDs point at it)\nRegString \"$U\\Console\\%%Startup\" 'DelegationConsole' '{2EACA947-7F5F-4CFA-BA87-8F7FBEEFBE69}'\nRegString \"$U\\Console\\%%Startup\" 'DelegationTerminal' '{E12CFF52-A866-4C77-9A90-F570A7AA2C6B}'\nLog '=== default-terminal done ==='",
+      "tweaks": [],
+      "params": []
+    },
+    {
+      "name": "desktop-icons",
+      "category": "UI & shell",
+      "risk": "safe",
+      "kind": "script",
+      "anchor": "default-user-scripts",
+      "description": "Show/hide This PC, Recycle Bin, User folder, Network, Control Panel; hide all icons; remove shortcut arrow. reg [U]",
+      "why": "Chooses which desktop icons show (This PC, Recycle Bin, Network…) instead of the default sparse desktop.",
+      "riskNote": "Cosmetic per-user preference, fully reversible.",
+      "content": "# InDows module: desktop-icons\r\n# Shows \"This PC\" and \"Recycle Bin\" on the desktop for new users.  (0 = show, 1 = hide)\r\n# Anchor: [InDows:module] default-user-scripts\r\n\r\n$ErrorActionPreference = 'Continue'\r\n$log = 'C:\\Windows\\Temp\\InDows-desktop-icons.log'\r\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\r\nfunction RegDword([string]$p, [string]$n, [int]$v) {\r\n    New-Item -Path $p -Force -ErrorAction SilentlyContinue | Out-Null\r\n    New-ItemProperty -Path $p -Name $n -Value $v -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null\r\n}\r\n$np = 'Registry::HKEY_USERS\\DefaultUser\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\\HideDesktopIcons\\NewStartPanel'\r\n\r\nLog '=== desktop-icons start ==='\r\nRegDword $np '{20D04FE0-3AEA-1069-A2D8-08002B30309D}' 0   # This PC\r\nRegDword $np '{645FF040-5081-101B-9F08-00AA002F954E}' 0   # Recycle Bin\r\n# Uncomment to also show:\r\n# RegDword $np '{59031a47-3f72-44a7-89c5-5595fe6b30ee}' 0  # User's files\r\n# RegDword $np '{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}' 0  # Network\r\n# RegDword $np '{5399E694-6CE5-4D6C-8FCE-1D8870FDCBA0}' 0  # Control Panel\r\nLog '=== desktop-icons done ==='",
+      "tweaks": [
+        {
+          "id": "this-pc",
+          "label": "This PC",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword $np '{20D04FE0-3AEA-1069-A2D8-08002B30309D}' 0",
+          "description": "Places the 'This PC' icon on the desktop. When on, you get a desktop shortcut that opens straight to your drives and main folders."
+        },
+        {
+          "id": "recycle-bin",
+          "label": "Recycle Bin",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword $np '{645FF040-5081-101B-9F08-00AA002F954E}' 0",
+          "description": "Keeps the Recycle Bin icon visible on the desktop. When on, the Recycle Bin sits on the desktop so you can open or empty it directly."
+        }
+      ],
+      "params": []
+    },
+    {
+      "name": "developer-tools",
+      "category": "System",
+      "risk": "risky",
+      "kind": "script",
+      "anchor": "specialize-scripts",
+      "description": "Opt-in developer conveniences (off by default): `sudo` in force-new-window mode + Developer Mode (sideload / run unsigned trusted apps).",
+      "why": "Handy for developers: run elevated commands with sudo, and sideload / run your own unsigned apps.",
+      "riskNote": "Lowers guardrails on purpose — sudo elevation and running unsigned apps. Reduces protection, but won't damage the OS or hardware. Enable only what you need; off by default.",
+      "content": "# InDows module: developer-tools\n# Opt-in developer conveniences: `sudo` (force-new-window mode) + Developer Mode. OFF by default.\n# Anchor: [InDows:module] specialize-scripts\n#\n# These lower a few guardrails on purpose (sideloading, elevation). Turn on only what you need.\n\n$ErrorActionPreference = 'Continue'\n$log = 'C:\\Windows\\Temp\\InDows-developer-tools.log'\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\nfunction RegDword([string]$p, [string]$n, [int]$v) {\n    New-Item -Path $p -Force -ErrorAction SilentlyContinue | Out-Null\n    New-ItemProperty -Path $p -Name $n -Value $v -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null\n}\n\nLog '=== developer-tools start ==='\nRegDword 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Sudo' 'Enabled' 1   # sudo enabled in force-new-window mode (never inline)\n# Developer Mode: sideload + run unsigned trusted apps\nRegDword 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AppModelUnlock' 'AllowDevelopmentWithoutDevLicense' 1\nRegDword 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AppModelUnlock' 'AllowAllTrustedApps' 1\nLog '=== developer-tools done ==='",
+      "tweaks": [
+        {
+          "id": "sudo-enabled-in-force-new-window-mode-ne",
+          "label": "Sudo enabled in force-new-window mode (never inline)",
+          "risk": "risky",
+          "default": true,
+          "content": "RegDword 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Sudo' 'Enabled' 1",
+          "description": "Enables the Windows 'sudo' command so you can run a command with admin rights from an ordinary terminal. It uses the safer 'new window' mode, meaning the elevated command opens in a separate window rather than inside your current one."
+        },
+        {
+          "id": "developer-mode-sideload-run-unsigned-tru",
+          "label": "Developer Mode: sideload + run unsigned trusted apps",
+          "risk": "risky",
+          "default": true,
+          "content": "RegDword 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AppModelUnlock' 'AllowDevelopmentWithoutDevLicense' 1\nRegDword 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AppModelUnlock' 'AllowAllTrustedApps' 1",
+          "description": "Turns on Windows Developer Mode. When on, you can install (sideload) and run your own apps that aren't signed or from the Store, the same as flipping the Developer Mode switch in Settings."
+        }
+      ],
+      "params": []
+    },
+    {
+      "name": "device-metadata",
+      "category": "Privacy",
+      "risk": "safe",
+      "kind": "script",
+      "anchor": "specialize-scripts",
+      "description": "Stop Windows downloading device apps/metadata from Microsoft for your hardware (`PreventDeviceMetadataFromNetwork=1`,",
+      "why": "Less network chatter to Microsoft about your hardware; you keep generic device names and icons.",
+      "riskNote": "A device may show a generic name/icon instead of a fetched one. Harmless.",
+      "content": "# InDows module: device-metadata\n# Stop Windows fetching device apps/metadata (icons, info) from Microsoft for your hardware.\n# Anchor: [InDows:module] specialize-scripts\n\n$ErrorActionPreference = 'Continue'\n$log = 'C:\\Windows\\Temp\\InDows-device-metadata.log'\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\nfunction RegDword([string]$p, [string]$n, [int]$v) {\n    New-Item -Path $p -Force -ErrorAction SilentlyContinue | Out-Null\n    New-ItemProperty -Path $p -Name $n -Value $v -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null\n}\n\nLog '=== device-metadata start ==='\n# Prevent device metadata retrieval from the network (setting + Group Policy mirror)\nRegDword 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Device Metadata' 'PreventDeviceMetadataFromNetwork' 1\nRegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Device Metadata' 'PreventDeviceMetadataFromNetwork' 1\nLog '=== device-metadata done ==='",
+      "tweaks": [],
+      "params": []
+    },
+    {
+      "name": "disable-ai",
+      "category": "Privacy",
+      "risk": "safe",
+      "kind": "script",
+      "anchor": "specialize-scripts",
+      "description": "Copilot (`TurnOffWindowsCopilot=1`), Recall, Click-to-Do, Edge AI, Paint/Notepad AI, `WSAIFabricSvc`→manual. reg (mostly HKLM policy).",
+      "why": "Turns off Copilot, Recall and the AI baked into Edge, Paint and Notepad if you don't want them running.",
+      "riskNote": "Policy keys only; nothing else breaks. On Windows 24H2 and newer Copilot is a normal app, so the 'turn off Copilot' policy may not fully remove it — the AI features are still disabled.",
+      "content": "# InDows module: disable-ai\r\n# Turns off Windows AI features, machine-wide. Each line is independent -- comment out what you want to keep.\r\n# Runs elevated during the \"specialize\" pass. Anchor: [InDows:module] specialize-scripts\r\n\r\n$ErrorActionPreference = 'Continue'\r\n$log = 'C:\\Windows\\Temp\\InDows-disable-ai.log'\r\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\r\nfunction RegDword([string]$path, [string]$name, [int]$val) {\r\n    New-Item -Path $path -Force -ErrorAction SilentlyContinue | Out-Null\r\n    New-ItemProperty -Path $path -Name $name -Value $val -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null\r\n}\r\n$ai = 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsAI'\r\n\r\nLog '=== disable-ai start ==='\r\n# Windows Copilot\r\nRegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsCopilot' 'TurnOffWindowsCopilot' 1\r\n# Recall: \"AI data analysis\" + saved screen snapshots\r\nRegDword $ai 'DisableAIDataAnalysis' 1\r\nRegDword $ai 'TurnOffSavingSnapshots' 1\r\n# Click to Do (the \"act on what's on screen\" feature)\r\nRegDword $ai 'DisableClickToDo' 1\r\n# Microsoft Edge: hide the Copilot/Discover sidebar\r\nRegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' 'HubsSidebarEnabled' 0\r\nRegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' 'ShowSidebarButton' 0\r\n\r\n# --- optional (commented) ---\r\n# Generative AI features inside Edge (Compose, etc.):\r\n# RegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' 'GenAILocalFoundationalModelSettings' 1\r\n# The taskbar Copilot BUTTON is a per-user setting -> put it in a default-user tweak if you want it hidden\r\n# for new users: ...\\Explorer\\Advanced\\ShowCopilotButton = 0\r\nLog '=== disable-ai done ==='",
+      "tweaks": [
+        {
+          "id": "windows-copilot",
+          "label": "Windows Copilot",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsCopilot' 'TurnOffWindowsCopilot' 1",
+          "description": "Turns off Windows Copilot, the built-in AI assistant. When on, the Copilot button and its side panel no longer open."
+        },
+        {
+          "id": "recall-ai-data-analysis-saved-screen-sna",
+          "label": "Recall: \"AI data analysis\" + saved screen snapshots",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword $ai 'DisableAIDataAnalysis' 1\nRegDword $ai 'TurnOffSavingSnapshots' 1",
+          "description": "Turns off Recall, the feature that periodically saves snapshots of your screen so AI can search your past activity. When on, no screen snapshots are taken or analysed."
+        },
+        {
+          "id": "click-to-do-the-act-on-what-s-on-screen",
+          "label": "Click to Do (the \"act on what's on screen\" feature)",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword $ai 'DisableClickToDo' 1",
+          "description": "Turns off Click to Do, the feature that lets AI act on text and images shown on your screen. When on, that on-screen suggestion overlay is unavailable."
+        },
+        {
+          "id": "microsoft-edge-hide-the-copilot-discover",
+          "label": "Microsoft Edge: hide the Copilot/Discover sidebar",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' 'HubsSidebarEnabled' 0\nRegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' 'ShowSidebarButton' 0",
+          "description": "Hides the Copilot/Discover sidebar in Microsoft Edge. When on, the sidebar strip and its button are removed from the edge of the browser window."
+        }
+      ],
+      "params": []
+    },
+    {
+      "name": "disable-bing-search",
+      "category": "Privacy",
+      "risk": "safe",
+      "kind": "script",
+      "anchor": "default-user-scripts",
+      "description": "Bing web results + Bing AI in Search, Cortana (`AllowCortana=0`), search highlights, store search suggestions, search history. reg.",
+      "why": "Stops Start-menu search from sending your queries to Bing and showing web results — local search only.",
+      "riskNote": "Reversible. Web results and Cortana simply stop appearing in Search.",
+      "content": "# InDows module: disable-bing-search\r\n# Removes Bing web results, Cortana and Search Highlights from the Start/Search box.\r\n# Anchor: [InDows:module] default-user-scripts  (writes a machine policy + per-user defaults)\r\n\r\n$ErrorActionPreference = 'Continue'\r\n$log = 'C:\\Windows\\Temp\\InDows-disable-bing-search.log'\r\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\r\nfunction RegDword([string]$p, [string]$n, [int]$v) {\r\n    New-Item -Path $p -Force -ErrorAction SilentlyContinue | Out-Null\r\n    New-ItemProperty -Path $p -Name $n -Value $v -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null\r\n}\r\n$U = 'Registry::HKEY_USERS\\DefaultUser'\r\n\r\nLog '=== disable-bing-search start ==='\r\n# Machine policy (all users)\r\n$pol = 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search'\r\nRegDword $pol 'AllowCortana' 0\r\nRegDword $pol 'DisableWebSearch' 1\r\nRegDword $pol 'ConnectedSearchUseWeb' 0\r\nRegDword $pol 'EnableDynamicContentInWSB' 0   # Search Highlights\r\n# Per-user defaults\r\n$s = \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\Search\"\r\nRegDword $s 'BingSearchEnabled' 0\r\nRegDword $s 'CortanaConsent' 0\r\nLog '=== disable-bing-search done ==='",
+      "tweaks": [
+        {
+          "id": "machine-policy-all-users",
+          "label": "Machine policy (all users)",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword $pol 'AllowCortana' 0\nRegDword $pol 'DisableWebSearch' 1\nRegDword $pol 'ConnectedSearchUseWeb' 0",
+          "description": "Applies a machine-wide rule that stops the Start-menu search box from showing Bing web results and blocks Cortana, for every user. When on, searching returns only local matches (apps, files, settings) with no web answers."
+        },
+        {
+          "id": "search-highlights",
+          "label": "Search Highlights",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword $pol 'EnableDynamicContentInWSB' 0",
+          "description": "Turns off Search Highlights, the illustrated 'on this day' / holiday doodles and trending content in the search box. When on, the search box stays plain."
+        },
+        {
+          "id": "per-user-defaults",
+          "label": "Per-user defaults",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword $s 'BingSearchEnabled' 0\nRegDword $s 'CortanaConsent' 0",
+          "description": "Sets the same 'no Bing, no Cortana' choice as the default for each new user account. When on, every new user's search box shows local results only out of the box."
+        }
+      ],
+      "params": []
+    },
+    {
+      "name": "disk",
+      "category": "Advanced",
+      "risk": "risky",
+      "kind": "snippet",
+      "anchor": "disk",
+      "description": "**Automatic disk wipe + standard UEFI layout on disk 0** (EFI + MSR + NTFS C:). Replaces the interactive disk step.",
+      "why": "Replaces the interactive disk step with a fully automatic wipe + standard UEFI layout on disk 0.",
+      "riskNote": "DESTRUCTIVE: it ERASES disk 0 with no confirmation. Be certain which drive is disk 0 (unplug other disks if unsure). Data loss is permanent.",
+      "content": "<!-- ============================================================================\r\n     InDows module: disk  (automated disk layout)\r\n     Replaces the INTERACTIVE disk step with a fully automatic wipe + standard UEFI\r\n     layout on DISK 0. The base leaves disk selection interactive; add this only if\r\n     you want zero clicks AND you are sure which disk is \"disk 0\".\r\n\r\n     WHERE: settings pass=\"windowsPE\" > component \"Microsoft-Windows-Setup\"\r\n            (add BOTH the <DiskConfiguration> and the <ImageInstall> below)\r\n\r\n     **** DANGER ****  WillWipeDisk = true ERASES disk 0 with no confirmation.\r\n     Make sure disk 0 is the target drive (unplug other disks if unsure).\r\n     ============================================================================ -->\r\n<DiskConfiguration>\r\n    <Disk wcm:action=\"add\">\r\n        <DiskID>0</DiskID>\r\n        <WillWipeDisk>true</WillWipeDisk>\r\n        <CreatePartitions>\r\n            <CreatePartition wcm:action=\"add\">\r\n                <Order>1</Order>\r\n                <Type>EFI</Type>\r\n                <Size>300</Size>\r\n            </CreatePartition>\r\n            <CreatePartition wcm:action=\"add\">\r\n                <Order>2</Order>\r\n                <Type>MSR</Type>\r\n                <Size>16</Size>\r\n            </CreatePartition>\r\n            <CreatePartition wcm:action=\"add\">\r\n                <Order>3</Order>\r\n                <Type>Primary</Type>\r\n                <Extend>true</Extend>\r\n            </CreatePartition>\r\n        </CreatePartitions>\r\n        <ModifyPartitions>\r\n            <ModifyPartition wcm:action=\"add\">\r\n                <Order>1</Order>\r\n                <PartitionID>1</PartitionID>\r\n                <Format>FAT32</Format>\r\n                <Label>System</Label>\r\n            </ModifyPartition>\r\n            <ModifyPartition wcm:action=\"add\">\r\n                <Order>2</Order>\r\n                <PartitionID>3</PartitionID>\r\n                <Format>NTFS</Format>\r\n                <Label>Windows</Label>\r\n                <Letter>C</Letter>\r\n            </ModifyPartition>\r\n        </ModifyPartitions>\r\n    </Disk>\r\n</DiskConfiguration>\r\n<ImageInstall>\r\n    <OSImage>\r\n        <InstallTo>\r\n            <DiskID>0</DiskID>\r\n            <PartitionID>3</PartitionID>\r\n        </InstallTo>\r\n    </OSImage>\r\n</ImageInstall>",
+      "tweaks": [],
+      "params": []
+    },
+    {
+      "name": "explorer-ui",
+      "category": "UI & shell",
+      "risk": "safe",
+      "kind": "script",
+      "anchor": "default-user-scripts",
+      "description": "Show file extensions, show hidden files, open to This PC, hide Home/Gallery, drive-letters-first, hide duplicate",
+      "why": "Makes File Explorer show extensions, hidden files and open to This PC — the sane defaults power users expect.",
+      "riskNote": "Per-user Explorer preferences, each toggle reversible.",
+      "content": "# InDows module: explorer-ui\r\n# File Explorer defaults for new users. Each line is independent -- comment out what you don't want.\r\n# Anchor: [InDows:module] default-user-scripts\r\n\r\n$ErrorActionPreference = 'Continue'\r\n$log = 'C:\\Windows\\Temp\\InDows-explorer-ui.log'\r\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\r\nfunction RegDword([string]$p, [string]$n, [int]$v) {\r\n    New-Item -Path $p -Force -ErrorAction SilentlyContinue | Out-Null\r\n    New-ItemProperty -Path $p -Name $n -Value $v -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null\r\n}\r\n$U   = 'Registry::HKEY_USERS\\DefaultUser'\r\n$adv = \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\"\r\n\r\nLog '=== explorer-ui start ==='\r\nRegDword $adv 'HideFileExt' 0                   # show known file extensions\r\nRegDword $adv 'Hidden' 1                        # show hidden files (protected OS files stay hidden)\r\nRegDword $adv 'LaunchTo' 1                      # open Explorer to \"This PC\" (2 = Home)\r\nRegDword $adv 'ShowDriveLettersFirst' 4         # drive letter before the label (e.g. \"C: Windows\")\r\nRegDword $adv 'NavPaneExpandToCurrentFolder' 1  # auto-expand the nav pane to the open folder\r\n# Hide the \"Gallery\" entry in the navigation pane\r\nRegDword \"$U\\Software\\Classes\\CLSID\\{e88865ea-0e1c-4e20-9aa6-edcd0212c87c}\" 'System.IsPinnedToNameSpaceTree' 0\r\nRegDword $adv 'HideDrivesWithNoMedia' 0         # show empty drives (don't hide drives with no media)\r\nRegDword \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CabinetState\" 'FullPath' 1   # show the full path in the title bar\r\n\r\n# --- optional (commented) ---\r\n# Compact mode (tighter row spacing):\r\n# RegDword $adv 'UseCompactMode' 1\r\n# Also show PROTECTED operating-system files (clutter / risk of editing the wrong thing):\r\n# RegDword $adv 'ShowSuperHidden' 1\r\n# Hide the \"Home\" entry in the nav pane (leaves This PC):\r\n# RegDword \"$U\\Software\\Classes\\CLSID\\{f874310e-b6b7-47dc-bc84-b9e6b38f5903}\" 'System.IsPinnedToNameSpaceTree' 0\r\nLog '=== explorer-ui done ==='",
+      "tweaks": [
+        {
+          "id": "show-file-ext",
+          "label": "Show known file extensions",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword $adv 'HideFileExt' 0",
+          "description": "Makes File Explorer show file extensions. When on, filenames appear with their type visible, for example 'report.pdf' instead of just 'report'."
+        },
+        {
+          "id": "show-hidden",
+          "label": "Show hidden files",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword $adv 'Hidden' 1",
+          "description": "Shows files and folders marked as hidden (protected system files still stay hidden). When on, hidden items appear, slightly dimmed, in Explorer."
+        },
+        {
+          "id": "open-this-pc",
+          "label": "Open Explorer to This PC (not Home)",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword $adv 'LaunchTo' 1",
+          "description": "Makes new File Explorer windows open to 'This PC' rather than the 'Home' view. When on, Explorer starts on your drives and folders instead of a recent-files feed."
+        },
+        {
+          "id": "drive-letters-first",
+          "label": "Show drive letter before the label",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword $adv 'ShowDriveLettersFirst' 4",
+          "description": "Puts the drive letter before the drive name. When on, drives read like 'C: Windows' instead of 'Windows (C:)'."
+        },
+        {
+          "id": "expand-nav-pane",
+          "label": "Auto-expand the nav pane to the open folder",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword $adv 'NavPaneExpandToCurrentFolder' 1",
+          "description": "Makes the left navigation pane automatically unfold to reveal the folder you currently have open. When on, the folder tree expands to show exactly where you are."
+        },
+        {
+          "id": "hide-gallery",
+          "label": "Hide Gallery in the nav pane",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword \"$U\\Software\\Classes\\CLSID\\{e88865ea-0e1c-4e20-9aa6-edcd0212c87c}\" 'System.IsPinnedToNameSpaceTree' 0",
+          "description": "Removes the 'Gallery' photo-timeline entry from Explorer's left navigation pane. When on, Gallery no longer appears in the sidebar."
+        },
+        {
+          "id": "compact-mode",
+          "label": "Compact mode (tighter row spacing)",
+          "risk": "safe",
+          "default": false,
+          "content": "RegDword $adv 'UseCompactMode' 1",
+          "description": "Turns on compact view, which tightens the spacing between rows. When on, more files and folders fit on screen with less padding around each one."
+        },
+        {
+          "id": "show-super-hidden",
+          "label": "Show protected operating-system files",
+          "risk": "advanced",
+          "default": false,
+          "content": "RegDword $adv 'ShowSuperHidden' 1",
+          "description": "Also reveals protected operating-system files, which stay hidden even with 'show hidden files' on. When on, critical system files become visible, handy for troubleshooting but easy to edit or delete the wrong thing."
+        },
+        {
+          "id": "hide-home",
+          "label": "Hide Home in the nav pane (leaves This PC)",
+          "risk": "safe",
+          "default": false,
+          "content": "RegDword \"$U\\Software\\Classes\\CLSID\\{f874310e-b6b7-47dc-bc84-b9e6b38f5903}\" 'System.IsPinnedToNameSpaceTree' 0",
+          "description": "Removes the 'Home' entry from Explorer's navigation pane, leaving This PC. When on, the Home shortcut disappears from the sidebar."
+        },
+        {
+          "id": "show-empty-drives",
+          "label": "Show empty drives",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword $adv 'HideDrivesWithNoMedia' 0",
+          "description": "Shows drives even when they have no disc or card inserted, such as an empty card reader or DVD drive. When on, those empty drives still appear under This PC."
+        },
+        {
+          "id": "full-path-title",
+          "label": "Show the full path in the title bar",
+          "risk": "safe",
+          "default": false,
+          "content": "RegDword \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\CabinetState\" 'FullPath' 1",
+          "description": "Shows the complete folder path in Explorer's title bar. When on, you can see the full location of the folder you're viewing rather than just its name."
+        }
+      ],
+      "params": []
+    },
+    {
+      "name": "gaming",
+      "category": "Performance & gaming",
+      "risk": "advanced",
+      "kind": "script",
+      "anchor": "default-user-scripts",
+      "description": "GameDVR / background recording off (`GameDVR_Enabled=0`, policy `AllowGameDVR=0`), Game Mode, mouse acceleration",
+      "why": "Tunes Windows for games: Game Mode on, GameDVR recording off, no mouse acceleration.",
+      "riskNote": "Fullscreen Optimizations and HAGS are GPU/driver-dependent — they can help or hurt depending on your hardware.",
+      "content": "# InDows module: gaming\r\n# Background recording (GameDVR) OFF, Game Mode ON, mouse acceleration OFF.\r\n# Runs during specialize WITH the default-user hive loaded. Anchor: [InDows:module] default-user-scripts\r\n# (It also writes one machine-wide policy; that's fine from this anchor too.)\r\n\r\n$ErrorActionPreference = 'Continue'\r\n$log = 'C:\\Windows\\Temp\\InDows-gaming.log'\r\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\r\nfunction RegDword([string]$p, [string]$n, [int]$v) {\r\n    New-Item -Path $p -Force -ErrorAction SilentlyContinue | Out-Null\r\n    New-ItemProperty -Path $p -Name $n -Value $v -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null\r\n}\r\nfunction RegString([string]$p, [string]$n, [string]$v) {\r\n    New-Item -Path $p -Force -ErrorAction SilentlyContinue | Out-Null\r\n    New-ItemProperty -Path $p -Name $n -Value $v -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null\r\n}\r\n$U = 'Registry::HKEY_USERS\\DefaultUser'\r\n\r\nLog '=== gaming start ==='\r\n# GameDVR / background recording OFF (machine policy + per-user)\r\nRegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR' 'AllowGameDVR' 0\r\nRegDword \"$U\\System\\GameConfigStore\" 'GameDVR_Enabled' 0\r\nRegDword \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR\" 'AppCaptureEnabled' 0\r\n# Game Mode ON\r\nRegDword \"$U\\Software\\Microsoft\\GameBar\" 'AutoGameModeEnabled' 1\r\n# Mouse acceleration OFF (these three are REG_SZ)\r\nRegString \"$U\\Control Panel\\Mouse\" 'MouseSpeed' '0'\r\nRegString \"$U\\Control Panel\\Mouse\" 'MouseThreshold1' '0'\r\nRegString \"$U\\Control Panel\\Mouse\" 'MouseThreshold2' '0'\r\n\r\n# --- ADVANCED (commented) - DRIVER-DEPENDENT: these can help OR hurt depending on your GPU + driver + game ---\r\n# Fullscreen Optimizations OFF (force true exclusive fullscreen; can lower latency, can also break HDR/capture):\r\n# RegDword \"$U\\System\\GameConfigStore\" 'GameDVR_FSEBehaviorMode' 2\r\n# RegDword \"$U\\System\\GameConfigStore\" 'GameDVR_FSEBehavior' 2\r\n# Hardware-Accelerated GPU Scheduling (HAGS) ON (good on recent GPUs, problematic on some older/driver combos):\r\n# RegDword 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\GraphicsDrivers' 'HwSchMode' 2\r\nLog '=== gaming done ==='",
+      "tweaks": [
+        {
+          "id": "gamedvr-background-recording-off-machine",
+          "label": "GameDVR / background recording OFF (machine policy + per-user)",
+          "risk": "advanced",
+          "default": true,
+          "content": "RegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR' 'AllowGameDVR' 0\nRegDword \"$U\\System\\GameConfigStore\" 'GameDVR_Enabled' 0\nRegDword \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\GameDVR\" 'AppCaptureEnabled' 0",
+          "description": "Turns off the background game recording used by Xbox Game Bar (Game DVR). When on, Windows no longer records your gameplay in the background, which can free up performance while you play."
+        },
+        {
+          "id": "game-mode-on",
+          "label": "Game Mode ON",
+          "risk": "advanced",
+          "default": true,
+          "content": "RegDword \"$U\\Software\\Microsoft\\GameBar\" 'AutoGameModeEnabled' 1",
+          "description": "Turns on Game Mode, which tells Windows to prioritise the running game and hold back background activity. When on, the active game gets first call on system resources."
+        },
+        {
+          "id": "mouse-acceleration-off",
+          "label": "Mouse acceleration OFF",
+          "risk": "advanced",
+          "default": true,
+          "content": "RegString \"$U\\Control Panel\\Mouse\" 'MouseSpeed' '0'\nRegString \"$U\\Control Panel\\Mouse\" 'MouseThreshold1' '0'\nRegString \"$U\\Control Panel\\Mouse\" 'MouseThreshold2' '0'",
+          "description": "Turns off mouse acceleration ('enhance pointer precision'), so the pointer moves the same distance no matter how fast you flick the mouse. When on, aiming becomes consistent and 1:1, which most gamers prefer."
+        }
+      ],
+      "params": []
+    },
+    {
+      "name": "gpu-tuning",
+      "category": "Advanced",
+      "risk": "risky",
+      "kind": "script",
+      "anchor": "first-logon-scripts",
+      "description": "Vendor power-state tweaks under `{4d36e968-…}\\NNNN` (index known only **after** driver install → first-logon).",
+      "why": "Vendor GPU power-state tweaks (NVIDIA/AMD/Intel) that can cut micro-stutter on some cards.",
+      "riskNote": "Hardware-specific and MANUAL: the vendor keys only exist after you install the GPU driver, so at first logon it's a no-op — run it by hand afterwards. Wrong-vendor tweaks do nothing.",
+      "content": "# InDows module: gpu-tuning  -- MANUAL, run AFTER your GPU driver is installed.\r\n#\r\n# This is NOT wired into autounattend.xml: on a fresh install only the basic Microsoft display driver is\r\n# present, so the vendor registry keys don't exist yet. Install your real NVIDIA/AMD/Intel driver first,\r\n# then run this once in an elevated PowerShell.  Risk: advanced / hardware-dependent.\r\n\r\n$ErrorActionPreference = 'Continue'\r\n$log = \"$env:TEMP\\InDows-gpu-tuning.log\"\r\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log; Write-Host $m }\r\nfunction RegDword([string]$p, [string]$n, [int]$v) {\r\n    New-ItemProperty -Path $p -Name $n -Value $v -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null\r\n}\r\n\r\n$class = 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Class\\{4d36e968-e325-11ce-bfc1-08002be10318}'\r\nLog '=== gpu-tuning start ==='\r\nGet-ChildItem $class -ErrorAction SilentlyContinue | Where-Object { $_.PSChildName -match '^\\d{4}$' } | ForEach-Object {\r\n    $p = $_.PSPath\r\n    $d = (Get-ItemProperty -Path $p -Name 'DriverDesc' -ErrorAction SilentlyContinue).DriverDesc\r\n    if (-not $d) { return }\r\n    if     ($d -match 'NVIDIA')      { RegDword $p 'DisableDynamicPstate' 1; Log \"NVIDIA ($d): DisableDynamicPstate = 1\" }\r\n    elseif ($d -match 'AMD|Radeon')  { RegDword $p 'EnableUlps' 0;           Log \"AMD ($d): EnableUlps = 0\" }\r\n    else                             { Log \"skip ($d): no tweak for this vendor\" }\r\n}\r\nLog '=== gpu-tuning done (reboot to apply) ==='",
+      "tweaks": [],
+      "params": []
+    },
+    {
+      "name": "locale-keyboard",
+      "category": "Identity & setup",
+      "risk": "safe",
+      "kind": "snippet",
+      "anchor": "oobe-international",
+      "description": "Identity the base leaves interactive; these automate it. XML snippets (see each module folder).",
+      "why": "Sets your language and keyboard layout during install, so you don't pick them by hand at OOBE.",
+      "riskNote": "Standard install setting. A wrong layout is fixed in Settings in seconds.",
+      "content": "<!-- ============================================================================\r\n     InDows module: locale-keyboard\r\n     Sets language, region (formats) and keyboard layout automatically, so the\r\n     first-run language/keyboard screens are skipped.\r\n\r\n     WHERE: settings pass=\"oobeSystem\" - ADD this whole component.\r\n     ANCHOR (a comment in the base) named:   [InDows:module] oobe-international\r\n\r\n     REPLACE __LOCALE__ with the four values below (see README.md for the code tables). The InDows\r\n     GUI fills it from a language dropdown; for manual use, paste the four elements. English (US) example:\r\n\r\n       <InputLocale>0409:00000409</InputLocale>   keyboard layout(s), as \"langID:layoutID\"\r\n       <SystemLocale>en-US</SystemLocale>         language for non-Unicode programs\r\n       <UILanguage>en-US</UILanguage>             Windows display language (needs a language pack)\r\n       <UserLocale>en-US</UserLocale>             number/date/currency formats\r\n     ============================================================================ -->\r\n<component name=\"Microsoft-Windows-International-Core\" processorArchitecture=\"amd64\" publicKeyToken=\"31bf3856ad364e35\" language=\"neutral\" versionScope=\"nonSxS\">\r\n    __LOCALE__\r\n</component>",
+      "tweaks": [],
+      "params": [
+        {
+          "key": "LOCALE",
+          "label": "Language, region & keyboard",
+          "kind": "choice",
+          "default": "<InputLocale>0409:00000409</InputLocale>\n    <SystemLocale>en-US</SystemLocale>\n    <UILanguage>en-US</UILanguage>\n    <UserLocale>en-US</UserLocale>",
+          "options": [
+            {
+              "label": "English (United States)",
+              "value": "<InputLocale>0409:00000409</InputLocale>\n    <SystemLocale>en-US</SystemLocale>\n    <UILanguage>en-US</UILanguage>\n    <UserLocale>en-US</UserLocale>"
+            },
+            {
+              "label": "English (United Kingdom)",
+              "value": "<InputLocale>0809:00000809</InputLocale>\n    <SystemLocale>en-GB</SystemLocale>\n    <UILanguage>en-GB</UILanguage>\n    <UserLocale>en-GB</UserLocale>"
+            },
+            {
+              "label": "Français (France)",
+              "value": "<InputLocale>040c:0000040c</InputLocale>\n    <SystemLocale>fr-FR</SystemLocale>\n    <UILanguage>fr-FR</UILanguage>\n    <UserLocale>fr-FR</UserLocale>"
+            },
+            {
+              "label": "Deutsch (Deutschland)",
+              "value": "<InputLocale>0407:00000407</InputLocale>\n    <SystemLocale>de-DE</SystemLocale>\n    <UILanguage>de-DE</UILanguage>\n    <UserLocale>de-DE</UserLocale>"
+            },
+            {
+              "label": "Español (España)",
+              "value": "<InputLocale>0c0a:0000040a</InputLocale>\n    <SystemLocale>es-ES</SystemLocale>\n    <UILanguage>es-ES</UILanguage>\n    <UserLocale>es-ES</UserLocale>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "misc",
+      "category": "System",
+      "risk": "safe",
+      "kind": "script",
+      "anchor": "specialize-scripts",
+      "description": "RTC-as-UTC for dual-boot ([S] 🟢), verbose logon, long paths, NumLock at boot, restore point (**post-install**, not",
+      "why": "A grab-bag of small fixes: RTC-as-UTC for dual-boot, long-path support, NumLock at boot, the classic photo viewer.",
+      "riskNote": "Small, well-understood tweaks. The restore point is created post-install, not during.",
+      "content": "# InDows module: misc\r\n# Small machine-wide quality-of-life tweaks. Anchor: [InDows:module] specialize-scripts\r\n# Each is independent -- comment out the ones you don't want.\r\n\r\n$ErrorActionPreference = 'Continue'\r\n$log = 'C:\\Windows\\Temp\\InDows-misc.log'\r\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\r\nfunction RegDword([string]$p, [string]$n, [int]$v) {\r\n    New-Item -Path $p -Force -ErrorAction SilentlyContinue | Out-Null\r\n    New-ItemProperty -Path $p -Name $n -Value $v -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null\r\n}\r\nfunction RegString([string]$p, [string]$n, [string]$v) {\r\n    New-Item -Path $p -Force -ErrorAction SilentlyContinue | Out-Null\r\n    New-ItemProperty -Path $p -Name $n -Value $v -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null\r\n}\r\n\r\nLog '=== misc start ==='\r\n# RTC kept in UTC -> no clock fight with a Linux dual-boot. (Only useful if you dual-boot Linux.)\r\nRegDword 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation' 'RealTimeIsUniversal' 1\r\n# Allow long file paths (> 260 characters)\r\nRegDword 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem' 'LongPathsEnabled' 1\r\n# NumLock ON at the logon screen (.DEFAULT = the sign-in profile; for your own session it follows your last state)\r\nRegString 'Registry::HKEY_USERS\\.DEFAULT\\Control Panel\\Keyboard' 'InitialKeyboardIndicators' '2'\r\n# Verbose \"Starting Windows / Signing out...\" status messages instead of the spinner\r\nRegDword 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' 'VerboseStatus' 1\r\n\r\n# --- optional (commented) ---\r\n# Skip the lock screen, go straight to the password box:\r\n# RegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\Personalization' 'NoLockScreen' 1\r\n# Disable the \"shake a window to minimize the others\" gesture:\r\n# RegDword 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer' 'NoWindowMinimizingShortcuts' 1\r\nLog '=== misc done ==='",
+      "tweaks": [
+        {
+          "id": "rtc-kept-in-utc-no-clock-fight-with-a-li",
+          "label": "RTC kept in UTC -> no clock fight with a Linux dual-boot. (Only useful if you dual-boot Linux.)",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation' 'RealTimeIsUniversal' 1",
+          "description": "Tells Windows to read the PC's hardware clock as UTC instead of local time. When on, Windows and a Linux dual-boot stop overwriting each other's clock, so the time no longer jumps by your timezone offset after switching operating systems. Only useful if you dual-boot Linux."
+        },
+        {
+          "id": "allow-long-file-paths-260-characters",
+          "label": "Allow long file paths (> 260 characters)",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\FileSystem' 'LongPathsEnabled' 1",
+          "description": "Removes the old 260-character limit on file and folder paths. When on, apps that support it can create and open files with very long path names without errors."
+        },
+        {
+          "id": "numlock-on-at-the-logon-screen-default-t",
+          "label": "NumLock ON at the logon screen (.DEFAULT = the sign-in profile; for your own session it follows your last state)",
+          "risk": "safe",
+          "default": true,
+          "content": "RegString 'Registry::HKEY_USERS\\.DEFAULT\\Control Panel\\Keyboard' 'InitialKeyboardIndicators' '2'",
+          "description": "Turns NumLock on at the sign-in screen. When on, the numeric keypad types digits straight away, so you can enter a numeric PIN or password without pressing NumLock first."
+        },
+        {
+          "id": "verbose-starting-windows-signing-out-sta",
+          "label": "Verbose \"Starting Windows / Signing out...\" status messages instead of the spinner",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' 'VerboseStatus' 1",
+          "description": "Shows detailed status messages such as 'Starting Windows' and 'Signing out' during boot and sign-out. When on, you see what Windows is actually doing instead of just a spinning circle."
+        }
+      ],
+      "params": []
+    },
+    {
+      "name": "network-dns",
+      "category": "System",
+      "risk": "safe",
+      "kind": "script",
+      "anchor": "first-logon-scripts",
+      "description": "Set DNS (presets: Cloudflare, Google, Quad9, OpenDNS, AdGuard + family/malware variants, IPv4+IPv6), disable",
+      "why": "Points DNS at a fast, private resolver (Cloudflare, Quad9…) instead of your ISP's, for speed and privacy.",
+      "riskNote": "Reversible. If the resolver is ever down, switch back to automatic DNS.",
+      "content": "# InDows module: network-dns\r\n# Sets DNS servers on every active physical adapter. Runs at FIRST LOGON (needs a live network).\r\n# Anchor: [InDows:module] first-logon-scripts\r\n# Pick a provider by editing $dns below (uncomment one). Default = Cloudflare.\r\n\r\n$ErrorActionPreference = 'Continue'\r\n$log = 'C:\\Windows\\Temp\\InDows-network-dns.log'\r\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\r\n\r\n$dns = @('1.1.1.1', '1.0.0.1')   # [InDows:param DNS] Cloudflare (default; the InDows GUI can pick another below)\r\n# $dns = @('1.1.1.2', '1.0.0.2')               # Cloudflare (malware blocking)\r\n# $dns = @('9.9.9.9', '149.112.112.112')       # Quad9\r\n# $dns = @('94.140.14.14', '94.140.15.15')     # AdGuard\r\n# $dns = @('8.8.8.8', '8.8.4.4')               # Google\r\n# $dns = @('208.67.222.222', '208.67.220.220') # OpenDNS\r\n\r\nLog \"=== network-dns start (servers: $($dns -join ', ')) ===\"\r\nGet-NetAdapter -Physical -ErrorAction SilentlyContinue | Where-Object { $_.Status -eq 'Up' } | ForEach-Object {\r\n    try {\r\n        Set-DnsClientServerAddress -InterfaceIndex $_.ifIndex -ServerAddresses $dns -ErrorAction Stop\r\n        Log \"  set DNS on '$($_.Name)'\"\r\n    } catch { Log \"  FAILED on '$($_.Name)': $_\" }\r\n}\r\nLog '=== network-dns done ==='",
+      "tweaks": [],
+      "params": [
+        {
+          "key": "DNS",
+          "label": "DNS resolver",
+          "kind": "choice",
+          "default": "@('1.1.1.1', '1.0.0.1')",
+          "options": [
+            {
+              "label": "Cloudflare (1.1.1.1)",
+              "value": "@('1.1.1.1', '1.0.0.1')"
+            },
+            {
+              "label": "Cloudflare - malware blocking",
+              "value": "@('1.1.1.2', '1.0.0.2')"
+            },
+            {
+              "label": "Quad9",
+              "value": "@('9.9.9.9', '149.112.112.112')"
+            },
+            {
+              "label": "AdGuard",
+              "value": "@('94.140.14.14', '94.140.15.15')"
+            },
+            {
+              "label": "Google",
+              "value": "@('8.8.8.8', '8.8.4.4')"
+            },
+            {
+              "label": "OpenDNS",
+              "value": "@('208.67.222.222', '208.67.220.220')"
+            },
+            {
+              "label": "Custom…",
+              "value": "__CUSTOM__"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "network-profile",
+      "category": "System",
+      "risk": "safe",
+      "kind": "script",
+      "anchor": "first-logon-scripts",
+      "description": "Set the active network to the Private profile (`Set-NetConnectionProfile -NetworkCategory Private`) so LAN discovery/sharing works.",
+      "why": "Private lets file/printer sharing and device discovery work on your home network; Public locks them down.",
+      "riskNote": "Only do this on a network you trust (home/office), never on public Wi-Fi.",
+      "content": "# InDows module: network-profile\n# Set the active network connection(s) to the Private profile (enables LAN discovery/sharing).\n# Runs at FIRST LOGON (needs a live network). Anchor: [InDows:module] first-logon-scripts\n\n$ErrorActionPreference = 'Continue'\n$log = 'C:\\Windows\\Temp\\InDows-network-profile.log'\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\n\nLog '=== network-profile start ==='\nGet-NetConnectionProfile -ErrorAction SilentlyContinue | ForEach-Object {\n    try {\n        Set-NetConnectionProfile -InterfaceIndex $_.InterfaceIndex -NetworkCategory Private -ErrorAction Stop\n        Log \"  set Private on '$($_.Name)'\"\n    } catch { Log \"  FAILED on '$($_.Name)': $_\" }\n}\nLog '=== network-profile done ==='",
+      "tweaks": [],
+      "params": []
+    },
+    {
+      "name": "optional-features",
+      "category": "System",
+      "risk": "safe",
+      "kind": "script",
+      "anchor": "specialize-scripts",
+      "description": "Enable/disable via DISM: Hyper-V, WSL, Windows Sandbox, .NET 3.5, NFS, legacy media (WMP/DirectPlay), OpenSSH Server,",
+      "why": "Turns on Windows features (Hyper-V, WSL, Sandbox, .NET 3.5…) you want up front — tick them one by one; all start off.",
+      "riskNote": "Additive: nothing is enabled unless you tick it. Hyper-V and Windows Sandbox need Windows Pro/Enterprise and a reboot; Hyper-V can also clash with third-party VM software (VMware/VirtualBox) and some game anti-cheat.",
+      "content": "# InDows module: optional-features\n# Enables Windows optional features via DISM. Anchor: [InDows:module] specialize-scripts\n# Each line below is ONE feature the InDows GUI ticks/unticks individually (a commented line is skipped).\n# Most need a reboot to finish (the first boot covers that).\n#\n# NOTE: run STANDALONE this enables every feature listed. Through the InDows GUI you pick which ones;\n# all of them start UNticked, so nothing is enabled unless you ask for it.\n\n$features = @(\n    'Microsoft-Hyper-V-All'              # Hyper-V (Pro/Enterprise only)\n    'Microsoft-Windows-Subsystem-Linux'  # WSL (legacy feature; the winget 'Microsoft.WSL' app is newer)\n    'VirtualMachinePlatform'             # required by WSL2 / sandboxes\n    'Containers-DisposableClientVM'      # Windows Sandbox (Pro/Enterprise only)\n    'NetFx3'                             # .NET Framework 3.5\n)\n\n$ErrorActionPreference = 'Continue'\n$log = 'C:\\Windows\\Temp\\InDows-optional-features.log'\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\n\nLog '=== optional-features start ==='\nif (-not $features) { Log 'no features selected (all lines commented out)'; }\nforeach ($f in $features) {\n    try { Enable-WindowsOptionalFeature -Online -FeatureName $f -All -NoRestart -ErrorAction Stop | Out-Null; Log \"enabled $f\" }\n    catch { Log \"failed ${f}: $_\" }\n}\nLog '=== optional-features done ==='",
+      "tweaks": [
+        {
+          "id": "hyper-v",
+          "label": "Hyper-V (Pro only)",
+          "risk": "advanced",
+          "default": false,
+          "content": "'Microsoft-Hyper-V-All'",
+          "description": "Turns on Hyper-V, Windows' built-in virtualization for running virtual machines. Needs Windows Pro/Enterprise and a reboot. It can conflict with some third-party hypervisors (VMware/VirtualBox) and certain game anti-cheat."
+        },
+        {
+          "id": "wsl",
+          "label": "Windows Subsystem for Linux",
+          "risk": "safe",
+          "default": false,
+          "content": "'Microsoft-Windows-Subsystem-Linux'",
+          "description": "Turns on the Windows Subsystem for Linux (the legacy component) so you can run Linux distributions. The newer winget 'Microsoft.WSL' app is the modern alternative."
+        },
+        {
+          "id": "vm-platform",
+          "label": "Virtual Machine Platform (WSL2)",
+          "risk": "safe",
+          "default": false,
+          "content": "'VirtualMachinePlatform'",
+          "description": "Turns on Virtual Machine Platform, the low-level component WSL2 and sandbox features rely on."
+        },
+        {
+          "id": "sandbox",
+          "label": "Windows Sandbox (Pro only)",
+          "risk": "advanced",
+          "default": false,
+          "content": "'Containers-DisposableClientVM'",
+          "description": "Turns on Windows Sandbox, a throwaway isolated desktop for safely testing untrusted apps. Needs Windows Pro/Enterprise and a reboot."
+        },
+        {
+          "id": "netfx35",
+          "label": ".NET Framework 3.5",
+          "risk": "safe",
+          "default": false,
+          "content": "'NetFx3'",
+          "description": "Turns on .NET Framework 3.5, which some older apps still need. It may require the Windows install media or an internet connection to finish."
+        }
+      ],
+      "params": []
+    },
+    {
+      "name": "performance",
+      "category": "Performance & gaming",
+      "risk": "advanced",
+      "kind": "script",
+      "anchor": "specialize-scripts",
+      "description": "",
+      "why": "Nudges scheduling, multimedia and input latency toward responsiveness on a desktop.",
+      "riskNote": "Background-apps-off and single-svchost trade some convenience and RAM behaviour — measurable, not magic.",
+      "content": "# InDows module: performance\r\n# Foreground-responsiveness + multimedia scheduler tweaks. Machine-wide, specialize pass.\r\n# Anchor: [InDows:module] specialize-scripts\r\n\r\n$ErrorActionPreference = 'Continue'\r\n$log = 'C:\\Windows\\Temp\\InDows-performance.log'\r\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\r\nfunction RegDword([string]$p, [string]$n, [int]$v) {\r\n    New-Item -Path $p -Force -ErrorAction SilentlyContinue | Out-Null\r\n    New-ItemProperty -Path $p -Name $n -Value $v -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null\r\n}\r\nfunction RegString([string]$p, [string]$n, [string]$v) {\r\n    New-Item -Path $p -Force -ErrorAction SilentlyContinue | Out-Null\r\n    New-ItemProperty -Path $p -Name $n -Value $v -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null\r\n}\r\n\r\nLog '=== performance start ==='\r\n# Favor foreground apps (short, variable quantum with foreground boost)\r\nRegDword 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl' 'Win32PrioritySeparation' 38\r\n# Multimedia System Profile\r\n$mm = 'HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile'\r\nRegDword $mm 'SystemResponsiveness' 10\r\nRegDword $mm 'NetworkThrottlingIndex' ([int]-1)   # -1 = 0xFFFFFFFF = network throttling off\r\n# Per-task scheduling for games\r\n$g = \"$mm\\Tasks\\Games\"\r\nRegDword  $g 'GPU Priority' 8\r\nRegDword  $g 'Priority' 6\r\nRegString $g 'Scheduling Category' 'High'\r\nRegString $g 'SFIO Priority' 'High'\r\n\r\n# --- ADVANCED (commented) - bigger hammer, weigh it ---\r\n# Force a SINGLE svchost process (less service isolation; set the value to your RAM in KB --\r\n# 8 GB = 8388608, 16 GB = 16777216, 32 GB = 33554432):\r\n# RegDword 'HKLM:\\SYSTEM\\CurrentControlSet\\Control' 'SvcHostSplitThresholdInKB' 16777216\r\n# (Per-user perf tweaks -- background apps off, keyboard repeat speed -- belong in [U] modules.)\r\nLog '=== performance done ==='",
+      "tweaks": [
+        {
+          "id": "favor-foreground-apps-short-variable-qua",
+          "label": "Favor foreground apps (short, variable quantum with foreground boost)",
+          "risk": "advanced",
+          "default": true,
+          "content": "RegDword 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl' 'Win32PrioritySeparation' 38",
+          "description": "Tunes the CPU scheduler to give more attention to whatever app is in front. When on, the window you're actively using gets a larger share of processor time, which can make it feel more responsive."
+        },
+        {
+          "id": "multimedia-system-profile",
+          "label": "Multimedia System Profile",
+          "risk": "advanced",
+          "default": true,
+          "content": "RegDword $mm 'SystemResponsiveness' 10",
+          "description": "Reduces how much CPU Windows holds back for background system tasks, leaving more for media and games. When on, foreground playback and games get a bit more processor headroom."
+        },
+        {
+          "id": "network-throttling-off",
+          "label": "Network throttling off",
+          "risk": "advanced",
+          "default": true,
+          "content": "RegDword $mm 'NetworkThrottlingIndex' ([int]-1)",
+          "description": "Removes the network throttle Windows applies to protect audio and video playback. When on, network-heavy apps and downloads can use the connection's full speed."
+        },
+        {
+          "id": "per-task-scheduling-for-games",
+          "label": "Per-task scheduling for games",
+          "risk": "advanced",
+          "default": true,
+          "content": "RegDword  $g 'GPU Priority' 8\nRegDword  $g 'Priority' 6\nRegString $g 'Scheduling Category' 'High'\nRegString $g 'SFIO Priority' 'High'",
+          "description": "Raises the CPU, GPU and disk priority Windows gives to programs it recognises as games. When on, games are scheduled ahead of ordinary background tasks."
+        }
+      ],
+      "params": []
+    },
+    {
+      "name": "power",
+      "category": "Performance & gaming",
+      "risk": "advanced",
+      "kind": "script",
+      "anchor": "first-logon-scripts",
+      "description": "Hibernate + Fast Startup off (`powercfg /h off`), Ultimate Performance plan (`powercfg -duplicatescheme e9a42b02…`),",
+      "why": "Disables hibernate / Fast Startup and enables the Ultimate Performance plan for a snappier, cleaner-shutdown desktop.",
+      "riskNote": "Power-throttling and USB-power-saving off drain more on a laptop — leave them on for a portable machine.",
+      "content": "# InDows module: power\r\n# Turns Hibernate + Fast Startup OFF and activates the \"Ultimate Performance\" power plan.\r\n# Anchor: [InDows:module] first-logon-scripts  (powercfg is most reliable in a live session)\r\n#\r\n# NOTE (laptops): hibernate off removes the hiberfile and Fast Startup. \"Ultimate Performance\" keeps the\r\n# CPU/devices at full power -> great on a desktop, worse battery on a laptop.\r\n\r\n$ErrorActionPreference = 'Continue'\r\n$log = 'C:\\Windows\\Temp\\InDows-power.log'\r\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\r\n\r\nLog '=== power start ==='\r\n# Hibernate off (also disables Fast Startup, which relies on the hiberfile)\r\n& powercfg.exe /hibernate off\r\nNew-Item -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power' -Force -ErrorAction SilentlyContinue | Out-Null\r\nNew-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power' -Name 'HiberbootEnabled' -Value 0 -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null\r\n\r\n# Ultimate Performance plan: reveal it, then activate the freshly created GUID.\r\n$dup = (& powercfg.exe -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61) -join ' '\r\nif ($dup -match '([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})') {\r\n    & powercfg.exe /setactive $Matches[1]\r\n    Log \"Ultimate Performance activated ($($Matches[1]))\"\r\n} else {\r\n    Log 'Could not create the Ultimate Performance plan (not available on this edition?).'\r\n}\r\n\r\n# Screen off after 30 minutes on AC (never sleeps the PC, just the display)\r\n& powercfg.exe /change monitor-timeout-ac 30\r\n\r\n# --- ADVANCED (commented) - desktop-oriented, costs battery on a laptop ---\r\n# Disable CPU power throttling (keeps cores at higher clocks):\r\n# New-Item -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling' -Force -ErrorAction SilentlyContinue | Out-Null\r\n# New-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling' -Name 'PowerThrottlingOff' -Value 1 -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null\r\n# Disable USB selective suspend (USB devices never sleep -> fewer disconnect glitches, a bit more power):\r\n# & powercfg.exe /SETACVALUEINDEX SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 0\r\n# & powercfg.exe /SETDCVALUEINDEX SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 0\r\n# & powercfg.exe /SETACTIVE SCHEME_CURRENT\r\nLog '=== power done ==='",
+      "tweaks": [],
+      "params": []
+    },
+    {
+      "name": "powershell-policy",
+      "category": "System",
+      "risk": "advanced",
+      "kind": "script",
+      "anchor": "specialize-scripts",
+      "description": "Set the machine PowerShell execution policy to RemoteSigned (`…\\ShellIds\\Microsoft.PowerShell\\ExecutionPolicy`).",
+      "why": "Lets you run your own .ps1 scripts without the \"running scripts is disabled\" error, while still blocking unsigned downloads.",
+      "riskNote": "Loosens the default (Restricted); RemoteSigned is the common developer setting, not wide-open.",
+      "content": "# InDows module: powershell-policy\n# Set the machine-wide PowerShell execution policy to RemoteSigned. Anchor: [InDows:module] specialize-scripts\n\n$ErrorActionPreference = 'Continue'\n$log = 'C:\\Windows\\Temp\\InDows-powershell-policy.log'\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\nfunction RegString([string]$p, [string]$n, [string]$v) {\n    New-Item -Path $p -Force -ErrorAction SilentlyContinue | Out-Null\n    New-ItemProperty -Path $p -Name $n -Value $v -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null\n}\n\nLog '=== powershell-policy start ==='\n# LocalMachine execution policy = RemoteSigned (run your local scripts; signed remote ones only)\nRegString 'HKLM:\\SOFTWARE\\Microsoft\\PowerShell\\1\\ShellIds\\Microsoft.PowerShell' 'ExecutionPolicy' 'RemoteSigned'\nLog '=== powershell-policy done ==='",
+      "tweaks": [],
+      "params": []
+    },
+    {
+      "name": "privacy-telemetry",
+      "category": "Privacy",
+      "risk": "advanced",
+      "kind": "script",
+      "anchor": "default-user-scripts",
+      "description": "",
+      "why": "Cuts the data Windows sends to Microsoft: telemetry, ad ID, activity history, location, error reports.",
+      "riskNote": "Error-reporting off can hide a crash you'd want to debug. The rest is safely reversible.",
+      "content": "# InDows module: privacy-telemetry\r\n# Extra privacy hardening on top of the base. Each line is independent -- comment out what you want to keep.\r\n# Anchor: [InDows:module] default-user-scripts (machine policy + per-user defaults)\r\n\r\n$ErrorActionPreference = 'Continue'\r\n$log = 'C:\\Windows\\Temp\\InDows-privacy-telemetry.log'\r\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\r\nfunction RegDword([string]$p, [string]$n, [int]$v) {\r\n    New-Item -Path $p -Force -ErrorAction SilentlyContinue | Out-Null\r\n    New-ItemProperty -Path $p -Name $n -Value $v -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null\r\n}\r\n$U = 'Registry::HKEY_USERS\\DefaultUser'\r\n\r\nLog '=== privacy-telemetry start ==='\r\n# Activity history (machine policy)\r\nRegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System' 'PublishUserActivities' 0\r\nRegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System' 'EnableActivityFeed' 0\r\n# Advertising ID (per-user)\r\nRegDword \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo\" 'Enabled' 0\r\n# Tailored experiences with diagnostic data (per-user)\r\nRegDword \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\Privacy\" 'TailoredExperiencesWithDiagnosticDataEnabled' 0\r\n# Suggested content, tips, and silent OEM app installs (per-user, ContentDeliveryManager)\r\n$cdm = \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager\"\r\nRegDword $cdm 'SystemPaneSuggestionsEnabled' 0\r\nRegDword $cdm 'SubscribedContent-310093Enabled' 0   # welcome / \"get even more out of Windows\"\r\nRegDword $cdm 'SubscribedContent-338388Enabled' 0   # Start suggestions\r\nRegDword $cdm 'SubscribedContent-338389Enabled' 0   # tips & tricks\r\nRegDword $cdm 'SubscribedContent-353694Enabled' 0   # Settings suggestions\r\nRegDword $cdm 'SubscribedContent-353696Enabled' 0   # Settings suggestions\r\nRegDword $cdm 'SilentInstalledAppsEnabled' 0        # no silent app installs\r\nRegDword $cdm 'PreInstalledAppsEnabled' 0\r\nRegDword $cdm 'OemPreInstalledAppsEnabled' 0\r\nRegDword $cdm 'ContentDeliveryAllowed' 0\r\n# Find My Device (machine policy)\r\nRegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\FindMyDevice' 'AllowFindMyDevice' 0\r\n# Recommended troubleshooters: don't run any (machine policy)\r\nRegDword 'HKLM:\\SOFTWARE\\Microsoft\\WindowsMitigation' 'UserPreference' 1\r\n# Share across devices off (also turns off cross-device clipboard SYNC, not local Win+V history)\r\nRegDword \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\CDP\" 'CdpSessionUserAuthzPolicy' 0\r\nRegDword \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\CDP\" 'RomeSdkChannelUserAuthzPolicy' 0\r\n# Resume (\"continue on this PC\") off\r\nRegDword \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\CrossDeviceResume\\Configuration\" 'IsResumeAllowed' 0\r\nLog '=== privacy-telemetry done ==='",
+      "tweaks": [
+        {
+          "id": "activity-history",
+          "label": "Activity history off",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System' 'PublishUserActivities' 0\nRegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System' 'EnableActivityFeed' 0",
+          "description": "Turns off Activity History (Timeline), so Windows stops recording and uploading a log of the apps and files you use. When on, that history is no longer collected."
+        },
+        {
+          "id": "advertising-id",
+          "label": "Advertising ID off",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo\" 'Enabled' 0",
+          "description": "Turns off the per-user advertising ID that apps use to profile you for targeted ads. When on, apps see a blank ad ID, so in-app advertising becomes less personalised."
+        },
+        {
+          "id": "tailored-experiences",
+          "label": "Tailored experiences with diagnostic data off",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\Privacy\" 'TailoredExperiencesWithDiagnosticDataEnabled' 0",
+          "description": "Stops Windows using your diagnostic data to show personalised tips, ads and suggestions. When on, you get fewer tailored prompts scattered through the OS."
+        },
+        {
+          "id": "suggested-content",
+          "label": "Suggested content, tips & silent OEM app installs off",
+          "risk": "safe",
+          "default": true,
+          "content": "$cdm = \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\ContentDeliveryManager\"\nRegDword $cdm 'SystemPaneSuggestionsEnabled' 0\nRegDword $cdm 'SubscribedContent-310093Enabled' 0\nRegDword $cdm 'SubscribedContent-338388Enabled' 0\nRegDword $cdm 'SubscribedContent-338389Enabled' 0\nRegDword $cdm 'SubscribedContent-353694Enabled' 0\nRegDword $cdm 'SubscribedContent-353696Enabled' 0\nRegDword $cdm 'SilentInstalledAppsEnabled' 0\nRegDword $cdm 'PreInstalledAppsEnabled' 0\nRegDword $cdm 'OemPreInstalledAppsEnabled' 0\nRegDword $cdm 'ContentDeliveryAllowed' 0",
+          "description": "Turns off the promoted content Windows sprinkles around, Start-menu app promos, Settings suggestions, tips, and the quiet auto-install of sponsored apps. When on, the Start menu and Settings stop showing these ads and stop silently installing suggested apps."
+        },
+        {
+          "id": "find-my-device",
+          "label": "Find My Device off",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\FindMyDevice' 'AllowFindMyDevice' 0",
+          "description": "Turns off Find My Device, which lets you locate this PC remotely through your Microsoft account. When on, that location tracking is disabled and the feature is switched off in Settings."
+        },
+        {
+          "id": "troubleshooters-off",
+          "label": "Recommended troubleshooters: don't run any",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword 'HKLM:\\SOFTWARE\\Microsoft\\WindowsMitigation' 'UserPreference' 1",
+          "description": "Sets Windows' recommended troubleshooters to never run on their own. When on, Windows won't automatically apply background 'recommended' fixes to your system."
+        },
+        {
+          "id": "share-across-devices-off",
+          "label": "Share across devices off (also turns off clipboard sync)",
+          "risk": "safe",
+          "default": false,
+          "content": "RegDword \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\CDP\" 'CdpSessionUserAuthzPolicy' 0\nRegDword \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\CDP\" 'RomeSdkChannelUserAuthzPolicy' 0",
+          "description": "Turns off 'Share across devices', the cross-device handoff feature. When on, content no longer hands off between your linked devices, which also stops cloud clipboard sync between devices (your local Win+V history still works)."
+        },
+        {
+          "id": "resume-off",
+          "label": "Resume (\"continue on this PC\") off",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\CrossDeviceResume\\Configuration\" 'IsResumeAllowed' 0",
+          "description": "Turns off 'Resume' / 'continue on this PC', which hands things like OneDrive files from your phone over to the PC. When on, that continue-on-this-PC prompt no longer appears."
+        }
+      ],
+      "params": []
+    },
+    {
+      "name": "remote-desktop",
+      "category": "System",
+      "risk": "advanced",
+      "kind": "script",
+      "anchor": "specialize-scripts",
+      "description": "Enable Remote Desktop with Network Level Authentication (`Terminal Server\\fDenyTSConnections=0` + firewall). Opens an inbound service — trusted network only.",
+      "why": "Lets you connect to this PC from another machine over Remote Desktop, with Network Level Authentication kept on.",
+      "riskNote": "Opens an inbound network service. Only enable it on a machine and network you control — reach RDP over a VPN or a trusted LAN, never expose it straight to the internet.",
+      "content": "# InDows module: remote-desktop\n# Turns on Remote Desktop (RDP) so you can connect to this PC from another machine.\n# Network Level Authentication stays ON (the secure default). Anchor: [InDows:module] specialize-scripts\n\n$ErrorActionPreference = 'Continue'\n$log = 'C:\\Windows\\Temp\\InDows-remote-desktop.log'\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\n\nLog '=== remote-desktop start ==='\n# Allow incoming Remote Desktop connections (0 = allowed).\nreg.exe add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\" /v fDenyTSConnections /t REG_DWORD /d 0 /f\n# Require Network Level Authentication (client must authenticate before a session is created).\nreg.exe add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\WinStations\\RDP-Tcp\" /v UserAuthentication /t REG_DWORD /d 1 /f\n# Open the Windows Firewall for the Remote Desktop rule group.\nEnable-NetFirewallRule -DisplayGroup 'Remote Desktop' -ErrorAction SilentlyContinue\nLog '=== remote-desktop done ==='",
+      "tweaks": [],
+      "params": []
+    },
+    {
+      "name": "remove-edge",
+      "category": "Debloat & apps",
+      "risk": "advanced",
+      "kind": "script",
+      "anchor": "specialize-scripts",
+      "description": "Uninstall Microsoft Edge + Internet Explorer capability. See [`remove-edge/`](remove-edge/).",
+      "why": "Uninstalls the Edge browser and Internet Explorer for people who use another browser (WebView2, which apps rely on, is deliberately kept).",
+      "riskNote": "Removing the Edge BROWSER does not break Widgets, the new Outlook, Teams or games — those use WebView2, which stays. What does break: 'microsoft-edge:' links (some Start/search and notification links) and the default PDF/HTML handler, which you must reassign. Uninstall works only in the EEA, and a Windows update can quietly reinstall Edge. Keep another browser installed.",
+      "content": "# InDows module: remove-edge\r\n# Removes Microsoft Edge (Chromium) and the legacy Internet Explorer capability.\r\n# Runs elevated, during the \"specialize\" pass (before first logon) or at first logon.\r\n#\r\n# GEOGRAPHY (read this): Microsoft only allows the *official* Edge uninstall in the EEA\r\n# (European Economic Area, e.g. France). There, the command below works. Outside the EEA the\r\n# uninstall is blocked by Microsoft; this script then just logs it and leaves Edge in place\r\n# (enabling it elsewhere needs a region workaround that this module does NOT ship).\r\n#\r\n# KEPT ON PURPOSE: the Edge WebView2 Runtime (many apps depend on it) is NOT removed.\r\n# EXPECT SIDE EFFECTS: Widgets, a few Settings deep links, and the default PDF/HTML handler may change.\r\n\r\n$ErrorActionPreference = 'Continue'\r\n$log = 'C:\\Windows\\Temp\\InDows-remove-edge.log'\r\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\r\n\r\nLog '=== remove-edge start ==='\r\n\r\n# --- Internet Explorer (usually already gone on Windows 11) ---\r\ntry {\r\n    Get-WindowsCapability -Online -ErrorAction SilentlyContinue |\r\n        Where-Object { $_.Name -like 'Browser.InternetExplorer*' -and $_.State -eq 'Installed' } |\r\n        ForEach-Object { Log \"Removing IE capability: $($_.Name)\"; Remove-WindowsCapability -Online -Name $_.Name -ErrorAction SilentlyContinue | Out-Null }\r\n} catch { Log \"IE removal skipped: $_\" }\r\n\r\n# --- Microsoft Edge (Chromium): official uninstall via its own setup.exe ---\r\n$setup = Get-ChildItem 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application' -Recurse -Filter 'setup.exe' -ErrorAction SilentlyContinue |\r\n         Where-Object { $_.FullName -match '\\\\Installer\\\\setup\\.exe$' } | Select-Object -First 1\r\nif ($setup) {\r\n    Log \"Uninstalling Edge via: $($setup.FullName)\"\r\n    & $setup.FullName '--uninstall' '--system-level' '--verbose-logging' '--force-uninstall'\r\n    Log \"Edge setup.exe exit: $LASTEXITCODE  (a non-zero code usually means the uninstall is blocked in your region)\"\r\n} else {\r\n    Log 'Edge setup.exe not found (already removed?).'\r\n}\r\n\r\n# --- Stop EdgeUpdate from bringing Chromium Edge back ---\r\ntry {\r\n    New-Item -Path 'HKLM:\\SOFTWARE\\Microsoft\\EdgeUpdate' -Force -ErrorAction SilentlyContinue | Out-Null\r\n    Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\EdgeUpdate' -Name 'DoNotUpdateToEdgeWithChromium' -Value 1 -Type DWord -ErrorAction SilentlyContinue\r\n} catch { Log \"EdgeUpdate guard skipped: $_\" }\r\n\r\n# --- Tidy leftover desktop shortcuts ---\r\nGet-ChildItem \"$env:PUBLIC\\Desktop\", \"$env:USERPROFILE\\Desktop\" -Filter '*Edge*.lnk' -ErrorAction SilentlyContinue |\r\n    Remove-Item -Force -ErrorAction SilentlyContinue\r\n\r\nLog '=== remove-edge done ==='",
+      "tweaks": [],
+      "params": []
+    },
+    {
+      "name": "remove-onedrive",
+      "category": "Debloat & apps",
+      "risk": "safe",
+      "kind": "script",
+      "anchor": "first-logon-scripts",
+      "description": "Uninstall OneDrive (`OneDriveSetup.exe /uninstall`), remove its Explorer namespace, run-key, and setup from the",
+      "why": "Uninstalls OneDrive and removes its Explorer sidebar entry if you don't use Microsoft's cloud.",
+      "riskNote": "On a clean install nothing is synced yet, so this is safe. On a restore/migration, first set any cloud-only files to 'always keep on this device' — removing OneDrive also turns off Office save-to-cloud and the Desktop/Documents backup. Reversible by reinstalling.",
+      "content": "# InDows module: remove-onedrive\r\n# Uninstalls OneDrive and hides its File Explorer entry.\r\n# Anchor: [InDows:module] first-logon-scripts\r\n\r\n$ErrorActionPreference = 'Continue'\r\n$log = 'C:\\Windows\\Temp\\InDows-remove-onedrive.log'\r\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\r\nfunction RegDword([string]$p, [string]$n, [int]$v) {\r\n    New-Item -Path $p -Force -ErrorAction SilentlyContinue | Out-Null\r\n    New-ItemProperty -Path $p -Name $n -Value $v -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null\r\n}\r\n\r\nLog '=== remove-onedrive start ==='\r\nGet-Process 'OneDrive' -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue\r\n$setup = \"$env:SystemRoot\\SysWOW64\\OneDriveSetup.exe\"\r\nif (-not (Test-Path $setup)) { $setup = \"$env:SystemRoot\\System32\\OneDriveSetup.exe\" }\r\nif (Test-Path $setup) { Start-Process -FilePath $setup -ArgumentList '/uninstall' -Wait -ErrorAction SilentlyContinue; Log \"uninstalled via $setup\" }\r\nelse { Log 'OneDriveSetup.exe not found.' }\r\n\r\n# Hide the OneDrive entry from the Explorer navigation pane (both 64-bit and 32-bit views)\r\nforeach ($k in 'HKLM:\\SOFTWARE\\Classes\\CLSID\\{018D5C66-4533-4307-9B53-224DE2ED1FE6}',\r\n               'HKLM:\\SOFTWARE\\Wow6432Node\\Classes\\CLSID\\{018D5C66-4533-4307-9B53-224DE2ED1FE6}') {\r\n    RegDword $k 'System.IsPinnedToNameSpaceTree' 0\r\n}\r\nLog '=== remove-onedrive done ==='",
+      "tweaks": [],
+      "params": []
+    },
+    {
+      "name": "scheduled-tasks",
+      "category": "System",
+      "risk": "safe",
+      "kind": "script",
+      "anchor": "first-logon-scripts",
+      "description": "Disable telemetry/CEIP/compatibility-appraiser/error-reporting tasks (~20). `Disable-ScheduledTask`.",
+      "why": "Disables the telemetry, CEIP and compatibility-appraiser tasks that run in the background.",
+      "riskNote": "Only diagnostic/telemetry tasks are touched; core maintenance is left alone.",
+      "content": "# InDows module: scheduled-tasks\r\n# Disables telemetry / CEIP / error-reporting scheduled tasks.\r\n# Anchor: [InDows:module] first-logon-scripts  (the Task Scheduler service is fully up at logon)\r\n\r\n$ErrorActionPreference = 'Continue'\r\n$log = 'C:\\Windows\\Temp\\InDows-scheduled-tasks.log'\r\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\r\n\r\n$tasks = @(\r\n    @{ p = '\\Microsoft\\Windows\\Customer Experience Improvement Program\\'; n = 'Consolidator' }\r\n    @{ p = '\\Microsoft\\Windows\\Customer Experience Improvement Program\\'; n = 'UsbCeip' }\r\n    @{ p = '\\Microsoft\\Windows\\Application Experience\\';                  n = 'Microsoft Compatibility Appraiser' }\r\n    @{ p = '\\Microsoft\\Windows\\Application Experience\\';                  n = 'ProgramDataUpdater' }\r\n    @{ p = '\\Microsoft\\Windows\\Windows Error Reporting\\';                 n = 'QueueReporting' }\r\n    @{ p = '\\Microsoft\\Windows\\Feedback\\Siuf\\';                           n = 'DmClient' }\r\n    @{ p = '\\Microsoft\\Windows\\Feedback\\Siuf\\';                           n = 'DmClientOnScenarioDownload' }\r\n    @{ p = '\\Microsoft\\Windows\\DiskDiagnostic\\';                          n = 'Microsoft-Windows-DiskDiagnosticDataCollector' }\r\n)\r\n\r\nLog '=== scheduled-tasks start ==='\r\nforeach ($t in $tasks) {\r\n    try { Disable-ScheduledTask -TaskPath $t.p -TaskName $t.n -ErrorAction Stop | Out-Null; Log \"disabled $($t.p)$($t.n)\" }\r\n    catch { Log \"skip $($t.p)$($t.n): $_\" }\r\n}\r\nLog '=== scheduled-tasks done ==='",
+      "tweaks": [],
+      "params": []
+    },
+    {
+      "name": "security",
+      "category": "System",
+      "risk": "risky",
+      "kind": "script",
+      "anchor": "specialize-scripts",
+      "description": "Default (🟡): BitLocker auto-encryption off. **Danger zone (commented out, opt-in 🔴)**: lower UAC, disable SmartScreen,",
+      "why": "Turns off BitLocker auto-encryption by default; a commented \"danger zone\" can lower UAC or disable SmartScreen/Defender.",
+      "riskNote": "The danger-zone options genuinely reduce security — opt in knowingly (they're commented out, so you enable them by hand). This lowers protection but won't damage the OS or hardware. Defender can't be disabled while Tamper Protection is on.",
+      "content": "# InDows module: security\r\n#\r\n# DEFAULT (active): stop AUTOMATIC BitLocker device encryption (defensible - avoids surprise lockout).\r\n#\r\n# OPTIONAL \"danger zone\" (commented out below): tweaks that LOWER your protection. They are commented on\r\n# purpose so you cannot enable them by accident. Read each warning, then uncomment ONLY what you\r\n# understand and accept. Anchor: [InDows:module] specialize-scripts\r\n\r\n$ErrorActionPreference = 'Continue'\r\n$log = 'C:\\Windows\\Temp\\InDows-security.log'\r\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\r\nfunction RegDword([string]$p, [string]$n, [int]$v) {\r\n    New-Item -Path $p -Force -ErrorAction SilentlyContinue | Out-Null\r\n    New-ItemProperty -Path $p -Name $n -Value $v -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null\r\n}\r\nfunction RegString([string]$p, [string]$n, [string]$v) {\r\n    New-Item -Path $p -Force -ErrorAction SilentlyContinue | Out-Null\r\n    New-ItemProperty -Path $p -Name $n -Value $v -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null\r\n}\r\n\r\nLog '=== security start ==='\r\n\r\n# ---- DEFAULT (safe): prevent automatic BitLocker device encryption ----\r\nRegDword 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\BitLocker' 'PreventDeviceEncryption' 1\r\nLog 'PreventDeviceEncryption = 1 (automatic BitLocker off)'\r\n\r\n# ============================================================================\r\n#   ##############  DANGER ZONE  ##############\r\n#   Everything below LOWERS your security. ALL of it is disabled (commented).\r\n#   Uncomment a block ONLY if you fully understand and accept the consequences.\r\n#   Don't do this just because a video told you it makes the PC \"faster\".\r\n# ============================================================================\r\n\r\n# --- Lower / disable UAC ----------------------------------------------------\r\n#   RISK: programs can elevate to admin WITHOUT asking you. Malware then runs with full rights silently.\r\n#   Option A (softer): never show the admin consent prompt, UAC engine stays on.\r\n# RegDword 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' 'ConsentPromptBehaviorAdmin' 0\r\n#   Option B (nuclear): fully disable UAC. Also breaks Store/UWP apps and some Settings pages.\r\n# RegDword 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' 'EnableLUA' 0\r\n# Log 'UAC lowered (DANGER)'\r\n\r\n# --- Disable SmartScreen ----------------------------------------------------\r\n#   RISK: Windows stops warning you about malicious / unknown downloads, apps and websites.\r\n# RegString 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer' 'SmartScreenEnabled' 'Off'\r\n# RegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System' 'EnableSmartScreen' 0\r\n# RegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' 'SmartScreenEnabled' 0\r\n# Log 'SmartScreen disabled (DANGER)'\r\n\r\n# --- Microsoft Defender (GRANULAR - pick exactly what you turn off) ----------\r\n#   Some people want Defender fully gone; others just want to drop cloud/sample sharing but KEEP real-time\r\n#   scanning. Uncomment only the pieces you want off.\r\n#   NOTE: all of these are IGNORED while Tamper Protection is ON (the default). To make them stick you must\r\n#   first disable Tamper Protection by hand in Windows Security. InDows does NOT bypass it.\r\n#\r\n#   (a) Cloud-delivered protection off (keeps local real-time scanning):\r\n# RegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows Defender\\Spynet' 'SpynetReporting' 0\r\n#   (b) Automatic sample submission off (2 = never send):\r\n# RegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows Defender\\Spynet' 'SubmitSamplesConsent' 2\r\n#   (c) Real-time monitoring off (still installed, just not scanning live):\r\n# RegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows Defender\\Real-Time Protection' 'DisableRealtimeMonitoring' 1\r\n#   (d) THE WHOLE ENGINE off (nuclear - no antivirus at all):\r\n# RegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows Defender' 'DisableAntiSpyware' 1\r\n# Log 'Defender tweaks applied (only effective if Tamper Protection was already off) (DANGER)'\r\n\r\nLog '=== security done ==='",
+      "tweaks": [
+        {
+          "id": "bitlocker-auto-off",
+          "label": "Prevent automatic BitLocker encryption",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\BitLocker' 'PreventDeviceEncryption' 1",
+          "description": "Stops Windows silently turning on BitLocker device encryption during setup. Prevents a surprise 'enter your recovery key' lockout on a PC you didn't mean to encrypt. This is the safe default."
+        },
+        {
+          "id": "uac-no-prompt",
+          "label": "UAC: never show the admin consent prompt",
+          "risk": "risky",
+          "default": false,
+          "content": "RegDword 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' 'ConsentPromptBehaviorAdmin' 0",
+          "description": "Stops User Account Control ever asking for confirmation when a program wants admin rights — it just silently allows it. The UAC engine stays on, but you lose the 'are you sure?' prompt, so malware can elevate without you noticing. Lowers your security."
+        },
+        {
+          "id": "uac-disable",
+          "label": "UAC: fully disable (nuclear)",
+          "risk": "risky",
+          "default": false,
+          "content": "RegDword 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' 'EnableLUA' 0",
+          "description": "Fully turns off User Account Control: programs get full admin rights with no prompt at all. It also breaks many Store/UWP apps and some Settings pages. Strongly discouraged."
+        },
+        {
+          "id": "smartscreen-off",
+          "label": "Disable SmartScreen",
+          "risk": "risky",
+          "default": false,
+          "content": "RegString 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer' 'SmartScreenEnabled' 'Off'\nRegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\System' 'EnableSmartScreen' 0\nRegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Edge' 'SmartScreenEnabled' 0",
+          "description": "Turns off SmartScreen, so Windows and Edge stop warning you about malicious or unknown downloads, apps and websites. You lose a key layer of malware protection."
+        },
+        {
+          "id": "defender-cloud-off",
+          "label": "Defender: cloud-delivered protection off",
+          "risk": "risky",
+          "default": false,
+          "content": "RegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows Defender\\Spynet' 'SpynetReporting' 0",
+          "description": "Stops Microsoft Defender sending suspicious files to Microsoft's cloud for a faster verdict. Local real-time scanning stays on, but brand-new threats are caught a bit slower. (Ignored while Tamper Protection is on.)"
+        },
+        {
+          "id": "defender-samples-off",
+          "label": "Defender: automatic sample submission off",
+          "risk": "risky",
+          "default": false,
+          "content": "RegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows Defender\\Spynet' 'SubmitSamplesConsent' 2",
+          "description": "Stops Defender automatically uploading sample files to Microsoft — a privacy trade-off that slightly weakens cloud detection. (Ignored while Tamper Protection is on.)"
+        },
+        {
+          "id": "defender-realtime-off",
+          "label": "Defender: real-time monitoring off",
+          "risk": "risky",
+          "default": false,
+          "content": "RegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows Defender\\Real-Time Protection' 'DisableRealtimeMonitoring' 1",
+          "description": "Turns off Defender's live scanning, so files are no longer checked as they're opened or run. Defender stays installed but is not actively protecting you. (Ignored while Tamper Protection is on.)"
+        },
+        {
+          "id": "defender-disable",
+          "label": "Defender: disable the whole engine (nuclear)",
+          "risk": "risky",
+          "default": false,
+          "content": "RegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows Defender' 'DisableAntiSpyware' 1",
+          "description": "Disables the Microsoft Defender antivirus engine entirely — the PC then has no built-in antivirus. Only do this if you run another antivirus. (Ignored while Tamper Protection is on; you must turn that off by hand first.)"
+        }
+      ],
+      "params": []
+    },
+    {
+      "name": "services-tune",
+      "category": "System",
+      "risk": "risky",
+      "kind": "script",
+      "anchor": "specialize-scripts",
+      "description": "Two presets:",
+      "why": "Sets rarely-used services to Manual to trim background load; a hardening preset goes further.",
+      "riskNote": "The hardening preset can break remote management or connectivity if mis-set — it's an opt-in allow-list.",
+      "content": "# InDows module: services-tune\r\n# Sets services to Manual (or Disabled in the hardening preset). Anchor: [InDows:module] specialize-scripts\r\n#\r\n# Choose a preset:\r\n#   'safe'      -> rarely-used services to Manual (they still start on demand). Zero risk.\r\n#   'hardening' -> also disables some telemetry/remote services (advanced; read the warnings).\r\n# Edit the lists to taste -- each name is a service. Find names with: Get-Service | Sort Name\r\n\r\n$preset = 'safe'   # [InDows:param PRESET] the InDows GUI can switch this to 'hardening'\r\n\r\n$ErrorActionPreference = 'Continue'\r\n$log = 'C:\\Windows\\Temp\\InDows-services-tune.log'\r\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\r\n\r\n# --- SAFE: rarely needed on a personal desktop -> Manual (start on demand) ---\r\n$toManual = @(\r\n    'MapsBroker'        # Downloaded Maps Manager\r\n    'Fax'               # Fax\r\n    'RetailDemo'        # Retail Demo (store kiosks)\r\n    'WMPNetworkSvc'     # Windows Media Player network sharing\r\n    'PhoneSvc'          # Phone Service\r\n    'WalletService'     # Wallet\r\n    'lfsvc'             # Geolocation\r\n    'SCardSvr'          # Smart Card (uncomment-worthy only if you use smart cards)\r\n    'WbioSrvc'          # Windows Biometric (only if no fingerprint/face login)\r\n    'TabletInputService' # Touch Keyboard & Handwriting (desktop without touch)\r\n)\r\n$toDisabled = @()\r\n\r\nif ($preset -eq 'hardening') {\r\n    # --- ADVANCED: telemetry + remote-management. ---\r\n    # WARN: don't disable RemoteRegistry / WinRM (RemoteAccess) if you manage this PC remotely.\r\n    # NEVER add Dhcp / Dnscache / NlaSvc / WlanSvc here -- that breaks networking.\r\n    $toDisabled += @(\r\n        'DiagTrack'         # Connected User Experiences and Telemetry\r\n        'dmwappushservice'  # WAP Push message routing (telemetry)\r\n        'RemoteRegistry'    # remote registry access\r\n        'RetailDemo'\r\n        'WerSvc'            # Windows Error Reporting\r\n    )\r\n    $toManual += @('SysMain')   # SysMain/Superfetch (some prefer it Manual on SSD)\r\n}\r\n\r\nLog \"=== services-tune start (preset: $preset) ===\"\r\nforeach ($s in ($toManual   | Select-Object -Unique)) { Set-Service -Name $s -StartupType Manual   -ErrorAction SilentlyContinue; Log \"  Manual:   $s\" }\r\nforeach ($s in ($toDisabled | Select-Object -Unique)) { Set-Service -Name $s -StartupType Disabled -ErrorAction SilentlyContinue; Log \"  Disabled: $s\" }\r\nLog '=== services-tune done ==='",
+      "tweaks": [],
+      "params": [
+        {
+          "key": "PRESET",
+          "label": "Preset",
+          "kind": "choice",
+          "default": "'safe'",
+          "options": [
+            {
+              "label": "Safe (rarely-used services to Manual)",
+              "value": "'safe'"
+            },
+            {
+              "label": "Hardening (also disables telemetry/remote - advanced)",
+              "value": "'hardening'"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "storage-sense",
+      "category": "System",
+      "risk": "safe",
+      "kind": "script",
+      "anchor": "default-user-scripts",
+      "description": "Enable Storage Sense + auto-clean Recycle Bin (60 d) and Downloads not opened in 60 d (`StorageSense\\Parameters\\StoragePolicy`).",
+      "why": "Keeps disk space in check automatically instead of letting trash and old downloads pile up.",
+      "riskNote": "It auto-deletes old Recycle Bin and Downloads files after the number of days you set (default 60) — don't keep things long-term in Downloads.",
+      "content": "# InDows module: storage-sense\n# Turn on Storage Sense: auto-clean the Recycle Bin (60 days) and Downloads not opened in 60 days.\n# Anchor: [InDows:module] default-user-scripts\n\n$ErrorActionPreference = 'Continue'\n$log = 'C:\\Windows\\Temp\\InDows-storage-sense.log'\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\nfunction RegDword([string]$p, [string]$n, [int]$v) {\n    New-Item -Path $p -Force -ErrorAction SilentlyContinue | Out-Null\n    New-ItemProperty -Path $p -Name $n -Value $v -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null\n}\n$sp = 'Registry::HKEY_USERS\\DefaultUser\\Software\\Microsoft\\Windows\\CurrentVersion\\StorageSense\\Parameters\\StoragePolicy'\n\n$recycleDays  = 60   # [InDows:param RECYCLE_DAYS]  empty the Recycle Bin after this many days (0 = never)\n$downloadDays = 60   # [InDows:param DOWNLOAD_DAYS] delete Downloads not opened in this many days (0 = never)\n\nLog '=== storage-sense start ==='\n# Storage Sense on + Recycle Bin cleanup + Downloads cleanup (numeric value names are literal)\nRegDword $sp '01' 1\nRegDword $sp '08' 1\nRegDword $sp '256' $recycleDays\nRegDword $sp '32' 1\nRegDword $sp '512' $downloadDays\nLog '=== storage-sense done ==='",
+      "tweaks": [],
+      "params": [
+        {
+          "key": "RECYCLE_DAYS",
+          "label": "Empty the Recycle Bin after (days)",
+          "kind": "number",
+          "default": "60",
+          "options": []
+        },
+        {
+          "key": "DOWNLOAD_DAYS",
+          "label": "Delete Downloads not opened in (days)",
+          "kind": "number",
+          "default": "60",
+          "options": []
+        }
+      ]
+    },
+    {
+      "name": "taskbar-startmenu",
+      "category": "UI & shell",
+      "risk": "safe",
+      "kind": "script",
+      "anchor": "default-user-scripts",
+      "description": "Taskbar align left, hide/replace Search box, hide Task View / Chat / Widgets, End Task on right-click, Start menu:",
+      "why": "Cleans the taskbar and Start menu: align left, hide Search / Task View / Widgets / Chat, drop the Recommended section.",
+      "riskNote": "Per-user shell preferences, every toggle reversible.",
+      "content": "# InDows module: taskbar-startmenu\r\n# Declutter the taskbar and Start menu for new users. Each line is independent.\r\n# Anchor: [InDows:module] default-user-scripts\r\n\r\n$ErrorActionPreference = 'Continue'\r\n$log = 'C:\\Windows\\Temp\\InDows-taskbar-startmenu.log'\r\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\r\nfunction RegDword([string]$p, [string]$n, [int]$v) {\r\n    New-Item -Path $p -Force -ErrorAction SilentlyContinue | Out-Null\r\n    New-ItemProperty -Path $p -Name $n -Value $v -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null\r\n}\r\n$U   = 'Registry::HKEY_USERS\\DefaultUser'\r\n$adv = \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\"\r\n\r\nLog '=== taskbar-startmenu start ==='\r\n# --- taskbar ---\r\nRegDword $adv 'TaskbarAl' 0              # align left\r\nRegDword $adv 'TaskbarDa' 0              # Widgets off\r\nRegDword $adv 'TaskbarMn' 0              # Chat off\r\nRegDword $adv 'ShowTaskViewButton' 0     # Task View button off\r\nRegDword $adv 'TaskbarEndTask' 1         # add \"End task\" to the taskbar right-click menu\r\nRegDword \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\Search\" 'SearchboxTaskbarMode' 1   # 0 hidden / 1 icon / 2 box / 3 box+label\r\n# --- Start menu ---\r\nRegDword $adv 'Start_IrisRecommendations' 0   # cloud \"Recommended\" suggestions off\r\nRegDword $adv 'Start_TrackDocs' 0             # don't list recently opened files\r\nRegDword $adv 'Start_TrackProgs' 0            # don't list recently added/used apps\r\nRegDword \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\Start\" 'ShowRecentList' 0   # don't show recently added apps in Start\r\nRegDword \"$U\\Software\\Policies\\Microsoft\\Windows\\Explorer\" 'ShowRunAsDifferentUserInStart' 1   # add \"Run as different user\" to Start\r\n\r\n# --- optional (commented) ---\r\n# More pins vs more recommendations (1 = more pins, 2 = more recommendations, 0 = default):\r\n# RegDword $adv 'Start_Layout' 1\r\nLog '=== taskbar-startmenu done ==='",
+      "tweaks": [
+        {
+          "id": "align-left",
+          "label": "Align left",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword $adv 'TaskbarAl' 0",
+          "description": "Moves the taskbar icons and Start button to the left edge instead of the centre. When on, Start sits in the bottom-left corner like earlier versions of Windows."
+        },
+        {
+          "id": "widgets-off",
+          "label": "Widgets off",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword $adv 'TaskbarDa' 0",
+          "description": "Removes the Widgets button (the weather and news panel) from the taskbar. When on, the widgets icon and its slide-out panel are gone."
+        },
+        {
+          "id": "chat-off",
+          "label": "Chat off",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword $adv 'TaskbarMn' 0",
+          "description": "Removes the Chat button (personal Microsoft Teams) from the taskbar. When on, that chat icon disappears."
+        },
+        {
+          "id": "task-view-button-off",
+          "label": "Task View button off",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword $adv 'ShowTaskViewButton' 0",
+          "description": "Removes the Task View button (virtual desktops and open-window overview) from the taskbar. When on, the icon is hidden, though the Win+Tab shortcut still works."
+        },
+        {
+          "id": "add-end-task-to-the-taskbar-right-click",
+          "label": "Add \"End task\" to the taskbar right-click menu",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword $adv 'TaskbarEndTask' 1",
+          "description": "Adds an 'End task' item to the right-click menu of taskbar apps. When on, you can force-close a frozen app straight from the taskbar without opening Task Manager."
+        },
+        {
+          "id": "0-hidden-1-icon-2-box-3-box-label",
+          "label": "0 hidden / 1 icon / 2 box / 3 box+label",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\Search\" 'SearchboxTaskbarMode' 1",
+          "description": "Shrinks the taskbar search to a small magnifying-glass icon instead of a full search box. When on, the wide search bar is replaced by a compact icon, freeing up taskbar space."
+        },
+        {
+          "id": "cloud-recommended-suggestions-off",
+          "label": "Cloud \"Recommended\" suggestions off",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword $adv 'Start_IrisRecommendations' 0",
+          "description": "Turns off the cloud-driven 'Recommended' suggestions in the Start menu (promoted apps and tips). When on, the Recommended area stops showing suggested content."
+        },
+        {
+          "id": "don-t-list-recently-opened-files",
+          "label": "Don't list recently opened files",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword $adv 'Start_TrackDocs' 0",
+          "description": "Stops Windows listing recently opened files in Start and in jump lists. When on, your recent documents no longer show up there."
+        },
+        {
+          "id": "don-t-list-recently-added-used-apps",
+          "label": "Don't list recently added/used apps",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword $adv 'Start_TrackProgs' 0",
+          "description": "Stops Start from tracking and showing your most-used and recently added apps. When on, those app suggestions no longer appear in the Start menu."
+        },
+        {
+          "id": "don-t-show-recently-added-apps-in-start",
+          "label": "Don't show recently added apps in Start",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\Start\" 'ShowRecentList' 0",
+          "description": "Hides the 'Recently added' apps list in the Start menu. When on, newly installed apps are no longer highlighted at the top of Start."
+        },
+        {
+          "id": "add-run-as-different-user-to-start",
+          "label": "Add \"Run as different user\" to Start",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword \"$U\\Software\\Policies\\Microsoft\\Windows\\Explorer\" 'ShowRunAsDifferentUserInStart' 1",
+          "description": "Adds 'Run as different user' to the right-click menu of apps in Start. When on, you can launch an app under another user account directly from the Start menu."
+        }
+      ],
+      "params": []
+    },
+    {
+      "name": "timezone",
+      "category": "Identity & setup",
+      "risk": "safe",
+      "kind": "snippet",
+      "anchor": "specialize-shell-setup",
+      "description": "Identity the base leaves interactive; these automate it. XML snippets (see each module folder).",
+      "why": "Sets the time zone during install, so the clock is right from first boot.",
+      "riskNote": "Trivial and reversible in Settings.",
+      "content": "<!-- ============================================================================\r\n     InDows module: timezone\r\n     Sets the time zone automatically. Without it, Windows uses the region picked\r\n     during the first-run setup.\r\n\r\n     WHERE: settings pass=\"specialize\" > component \"Microsoft-Windows-Shell-Setup\"\r\n     ANCHOR (a comment in the base) named:   [InDows:module] specialize-shell-setup\r\n\r\n     REPLACE: __TIMEZONE__  with a Windows time-zone ID (NOT a city/offset).\r\n       List them with:   tzutil /l        (or  Get-TimeZone -ListAvailable )\r\n       Examples: \"Romance Standard Time\" (FR/CET), \"GMT Standard Time\" (UK),\r\n                 \"Pacific Standard Time\", \"Eastern Standard Time\", \"UTC\"\r\n     ============================================================================ -->\r\n<TimeZone>__TIMEZONE__</TimeZone>",
+      "tweaks": [],
+      "params": [
+        {
+          "key": "TIMEZONE",
+          "label": "Time zone",
+          "kind": "choice",
+          "default": "UTC",
+          "options": [
+            {
+              "label": "UTC",
+              "value": "UTC"
+            },
+            {
+              "label": "London (GMT)",
+              "value": "GMT Standard Time"
+            },
+            {
+              "label": "Paris / Madrid (CET)",
+              "value": "Romance Standard Time"
+            },
+            {
+              "label": "Berlin / Amsterdam (CET)",
+              "value": "W. Europe Standard Time"
+            },
+            {
+              "label": "Athens / Helsinki (EET)",
+              "value": "GTB Standard Time"
+            },
+            {
+              "label": "New York (Eastern)",
+              "value": "Eastern Standard Time"
+            },
+            {
+              "label": "Chicago (Central)",
+              "value": "Central Standard Time"
+            },
+            {
+              "label": "Denver (Mountain)",
+              "value": "Mountain Standard Time"
+            },
+            {
+              "label": "Los Angeles (Pacific)",
+              "value": "Pacific Standard Time"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "username",
+      "category": "Identity & setup",
+      "risk": "safe",
+      "kind": "snippet",
+      "anchor": "account",
+      "description": "Identity the base leaves interactive; these automate it. XML snippets (see each module folder).",
+      "why": "Creates your local account during install, so you skip the Microsoft-account nag at OOBE. Pick Administrator or a standard (non-admin) account.",
+      "riskNote": "The password is stored in clear text in the answer file. Pair with autologon only if you accept that. A standard account is safer for day-to-day use.",
+      "content": "<!-- ============================================================================\n     InDows module: username\n     Creates a local user account automatically, so the first-run \"create account\"\n     screen is skipped. Without this module the base leaves that screen interactive.\n\n     WHERE: settings pass=\"oobeSystem\" > component \"Microsoft-Windows-Shell-Setup\"\n     ANCHOR (a comment in the base) named:   [InDows:module] account\n\n     REPLACE before use:\n       __USERNAME__   the account name (e.g. Alex)\n       __PASSWORD__   the password, in PLAIN TEXT\n                      -> for NO password, use an empty value: <Value></Value>\n       __GROUP__      Administrators (admin) or Users (standard, non-admin)\n\n     SECURITY: the password is stored in clear text in autounattend.xml.\n     Never commit a real password to a public repo. Keep your filled-in file local.\n     ============================================================================ -->\n<UserAccounts>\n    <LocalAccounts>\n        <LocalAccount wcm:action=\"add\">\n            <Name>__USERNAME__</Name>\n            <DisplayName>__USERNAME__</DisplayName>\n            <Group>__GROUP__</Group>\n            <Password>\n                <Value>__PASSWORD__</Value>\n                <PlainText>true</PlainText>\n            </Password>\n        </LocalAccount>\n    </LocalAccounts>\n</UserAccounts>",
+      "tweaks": [],
+      "params": [
+        {
+          "key": "USERNAME",
+          "label": "Account name",
+          "kind": "text",
+          "default": "User",
+          "options": []
+        },
+        {
+          "key": "PASSWORD",
+          "label": "Password (leave blank for none; stored in clear text)",
+          "kind": "password",
+          "default": "",
+          "options": []
+        },
+        {
+          "key": "GROUP",
+          "label": "Account type",
+          "kind": "choice",
+          "default": "Administrators",
+          "options": [
+            {
+              "label": "Administrator",
+              "value": "Administrators"
+            },
+            {
+              "label": "Standard user (non-admin)",
+              "value": "Users"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "visual-effects",
+      "category": "UI & shell",
+      "risk": "safe",
+      "kind": "script",
+      "anchor": "default-user-scripts",
+      "description": "Dark mode, disable transparency/animations, `MenuShowDelay=0`, `StartupDelayInMSec=0`, \"adjust for best performance\"",
+      "why": "Drops transparency and animations and adjusts for best performance — a faster-feeling UI.",
+      "riskNote": "Cosmetic. Toggle animations back in Settings if you miss them.",
+      "content": "# InDows module: visual-effects\r\n# Snappier visuals for new users. Each line is independent -- comment out anything you want to KEEP.\r\n# Anchor: [InDows:module] default-user-scripts\r\n\r\n$ErrorActionPreference = 'Continue'\r\n$log = 'C:\\Windows\\Temp\\InDows-visual-effects.log'\r\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\r\nfunction RegDword([string]$p, [string]$n, [int]$v) {\r\n    New-Item -Path $p -Force -ErrorAction SilentlyContinue | Out-Null\r\n    New-ItemProperty -Path $p -Name $n -Value $v -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null\r\n}\r\nfunction RegString([string]$p, [string]$n, [string]$v) {\r\n    New-Item -Path $p -Force -ErrorAction SilentlyContinue | Out-Null\r\n    New-ItemProperty -Path $p -Name $n -Value $v -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null\r\n}\r\n$U = 'Registry::HKEY_USERS\\DefaultUser'\r\n\r\nLog '=== visual-effects start ==='\r\n# --- individual tweaks (active) ---\r\nRegDword  \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize\" 'EnableTransparency' 0    # no transparency\r\nRegDword  \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\" 'TaskbarAnimations' 0      # no taskbar animations\r\nRegString \"$U\\Control Panel\\Desktop\" 'MenuShowDelay' '0'                                              # instant menus\r\nRegString \"$U\\Control Panel\\Desktop\\WindowMetrics\" 'MinAnimate' '0'                                   # no minimize/maximize animation\r\nRegDword  \"$U\\Software\\Microsoft\\Windows\\DWM\" 'EnableAeroPeek' 0                                      # no \"peek at desktop\"\r\nRegDword  \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize\" 'StartupDelayInMSec' 0    # no Start menu startup delay\r\nRegDword  \"$U\\Control Panel\\Accessibility\" 'DynamicScrollbars' 0                                      # always show scrollbars (no auto-hide)\r\nRegDword  \"$U\\Software\\Microsoft\\Clipboard\" 'EnableClipboardHistory' 1                                # clipboard history (Win+V)\r\n\r\n# --- NUCLEAR option (commented): \"adjust for best performance\" turns off basically ALL effects (plainer look) ---\r\n# RegDword \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\VisualEffects\" 'VisualFXSetting' 2\r\nLog '=== visual-effects done ==='",
+      "tweaks": [
+        {
+          "id": "no-transparency",
+          "label": "No transparency",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword  \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize\" 'EnableTransparency' 0",
+          "description": "Turns off the transparency and blur effects on the taskbar, Start menu and other surfaces. When on, those surfaces become solid, which can feel a touch faster."
+        },
+        {
+          "id": "no-taskbar-animations",
+          "label": "No taskbar animations",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword  \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\" 'TaskbarAnimations' 0",
+          "description": "Turns off the small taskbar animations. When on, taskbar buttons appear and disappear instantly instead of sliding."
+        },
+        {
+          "id": "instant-menus",
+          "label": "Instant menus",
+          "risk": "safe",
+          "default": true,
+          "content": "RegString \"$U\\Control Panel\\Desktop\" 'MenuShowDelay' '0'",
+          "description": "Removes the built-in delay before menus open. When on, right-click menus and submenus pop up instantly instead of after a short pause."
+        },
+        {
+          "id": "no-minimize-maximize-animation",
+          "label": "No minimize/maximize animation",
+          "risk": "safe",
+          "default": true,
+          "content": "RegString \"$U\\Control Panel\\Desktop\\WindowMetrics\" 'MinAnimate' '0'",
+          "description": "Turns off the animation when you minimise or maximise a window. When on, windows snap open and closed instantly instead of zooming."
+        },
+        {
+          "id": "no-peek-at-desktop",
+          "label": "No \"peek at desktop\"",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword  \"$U\\Software\\Microsoft\\Windows\\DWM\" 'EnableAeroPeek' 0",
+          "description": "Turns off Aero Peek, which previews the desktop when you hover the far-right corner of the taskbar. When on, hovering there no longer makes your windows go transparent."
+        },
+        {
+          "id": "no-start-menu-startup-delay",
+          "label": "No Start menu startup delay",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword  \"$U\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize\" 'StartupDelayInMSec' 0",
+          "description": "Removes the deliberate delay Windows adds before launching your startup apps after sign-in. When on, startup programs load immediately instead of after a pause."
+        },
+        {
+          "id": "always-show-scrollbars-no-auto-hide",
+          "label": "Always show scrollbars (no auto-hide)",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword  \"$U\\Control Panel\\Accessibility\" 'DynamicScrollbars' 0",
+          "description": "Keeps scrollbars permanently visible instead of hiding them until you hover. When on, scrollbars stay as a solid, easy-to-grab bar at all times."
+        },
+        {
+          "id": "clipboard-history-win-v",
+          "label": "Clipboard history (Win+V)",
+          "risk": "safe",
+          "default": true,
+          "content": "RegDword  \"$U\\Software\\Microsoft\\Clipboard\" 'EnableClipboardHistory' 1",
+          "description": "Turns on clipboard history. When on, pressing Win+V shows a list of the last several things you copied so you can paste any one of them back."
+        }
+      ],
+      "params": []
+    },
+    {
+      "name": "wallpaper",
+      "category": "Identity & setup",
+      "risk": "safe",
+      "kind": "script",
+      "anchor": "first-logon-scripts",
+      "description": "Set the desktop + lock-screen image (you stage the image first). reg [HKCU] + Personalization CSP.",
+      "why": "Sets the desktop and lock-screen image for new users (you stage the image first).",
+      "riskNote": "Cosmetic. Needs the image file present, or it falls back to the default.",
+      "content": "# InDows module: wallpaper\r\n# Sets the desktop wallpaper and (optionally) the lock-screen image. Anchor: [InDows:module] first-logon-scripts\r\n# Put your image(s) on the disk first (see README), then set the paths below. Leave a path empty to skip it.\r\n\r\n$desktop = '__WALLPAPER__'    # your desktop image (the InDows GUI fills this; e.g. C:\\Path\\to\\img.jpg)\r\n$lock    = '__LOCKSCREEN__'   # your lock-screen image (optional)\r\n$style   = '10'   # fit mode: 10 = Fill, 6 = Fit, 2 = Stretch, 0 = Center, 22 = Span\r\n\r\n$ErrorActionPreference = 'Continue'\r\n$log = 'C:\\Windows\\Temp\\InDows-wallpaper.log'\r\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\r\n\r\nLog '=== wallpaper start ==='\r\nif ($desktop -and (Test-Path $desktop)) {\r\n    Set-ItemProperty -Path 'HKCU:\\Control Panel\\Desktop' -Name 'WallPaper' -Value $desktop -ErrorAction SilentlyContinue\r\n    Set-ItemProperty -Path 'HKCU:\\Control Panel\\Desktop' -Name 'WallpaperStyle' -Value $style -ErrorAction SilentlyContinue\r\n    Start-Process -FilePath 'rundll32.exe' -ArgumentList 'user32.dll,UpdatePerUserSystemParameters' -ErrorAction SilentlyContinue\r\n    Log \"desktop -> $desktop (style $style)\"\r\n} elseif ($desktop) { Log \"desktop image not found: $desktop\" }\r\n\r\nif ($lock -and (Test-Path $lock)) {\r\n    $csp = 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\PolicyManager\\current\\device\\Personalization'\r\n    New-Item -Path $csp -Force -ErrorAction SilentlyContinue | Out-Null\r\n    Set-ItemProperty -Path $csp -Name 'LockScreenImagePath'   -Value $lock -ErrorAction SilentlyContinue\r\n    Set-ItemProperty -Path $csp -Name 'LockScreenImageUrl'    -Value $lock -ErrorAction SilentlyContinue\r\n    Set-ItemProperty -Path $csp -Name 'LockScreenImageStatus' -Value 1     -Type DWord -ErrorAction SilentlyContinue\r\n    Log \"lockscreen -> $lock\"\r\n}\r\nLog '=== wallpaper done ==='",
+      "tweaks": [],
+      "params": [
+        {
+          "key": "WALLPAPER",
+          "label": "Desktop image (leave blank to skip)",
+          "kind": "file",
+          "default": "",
+          "options": []
+        },
+        {
+          "key": "LOCKSCREEN",
+          "label": "Lock-screen image (optional)",
+          "kind": "file",
+          "default": "",
+          "options": []
+        }
+      ]
+    },
+    {
+      "name": "wifi",
+      "category": "Identity & setup",
+      "risk": "advanced",
+      "kind": "script",
+      "anchor": "first-logon-scripts",
+      "description": "Join a Wi-Fi network at first logon (WPA2-Personal; cleartext password). `netsh wlan`.",
+      "why": "Joins a Wi-Fi network at first logon, so a wireless-only PC is online without manual setup.",
+      "riskNote": "Stores the Wi-Fi password in clear text in the config. Treat the media as a secret.",
+      "content": "# InDows module: wifi\r\n# Joins a Wi-Fi network at first logon (handy when there's no Ethernet). Anchor: [InDows:module] first-logon-scripts\r\n# Edit $ssid / $password below. WPA2-Personal (the common home setup).\r\n# SECURITY: the password is in clear text here -> keep this file local.\r\n\r\n$ssid     = '__SSID__'\r\n$password = '__PASSWORD__'\r\n\r\n$ErrorActionPreference = 'Continue'\r\n$log = 'C:\\Windows\\Temp\\InDows-wifi.log'\r\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\r\n\r\nLog \"=== wifi start (SSID: $ssid) ===\"\r\n$wlanXml = @\"\r\n<?xml version=\"1.0\"?>\r\n<WLANProfile xmlns=\"http://www.microsoft.com/networking/WLAN/profile/v1\">\r\n  <name>$ssid</name>\r\n  <SSIDConfig><SSID><name>$ssid</name></SSID></SSIDConfig>\r\n  <connectionType>ESS</connectionType>\r\n  <connectionMode>auto</connectionMode>\r\n  <MSM><security>\r\n    <authEncryption><authentication>WPA2PSK</authentication><encryption>AES</encryption><useOneX>false</useOneX></authEncryption>\r\n    <sharedKey><keyType>passPhrase</keyType><protected>false</protected><keyMaterial>$password</keyMaterial></sharedKey>\r\n  </security></MSM>\r\n</WLANProfile>\r\n\"@\r\n$tmp = \"$env:TEMP\\InDows-wifi-profile.xml\"\r\n$wlanXml | Out-File -FilePath $tmp -Encoding ascii\r\n& netsh.exe wlan add profile filename=\"$tmp\" user=all *>> $log\r\n& netsh.exe wlan connect name=\"$ssid\" *>> $log\r\nRemove-Item -LiteralPath $tmp -Force -ErrorAction SilentlyContinue\r\nLog '=== wifi done ==='",
+      "tweaks": [],
+      "params": [
+        {
+          "key": "SSID",
+          "label": "Wi-Fi network name (SSID)",
+          "kind": "text",
+          "default": "",
+          "options": []
+        },
+        {
+          "key": "PASSWORD",
+          "label": "Wi-Fi password (WPA2; stored in clear text)",
+          "kind": "password",
+          "default": "",
+          "options": []
+        }
+      ]
+    },
+    {
+      "name": "windows-update",
+      "category": "System",
+      "risk": "advanced",
+      "kind": "script",
+      "anchor": "specialize-scripts",
+      "description": "Delivery Optimization off, pause auto-reboot while active, defer feature updates, active hours. reg (HKLM policy).",
+      "why": "Tames Windows Update: no forced reboots while you're active, Delivery Optimization off, feature updates deferred.",
+      "riskNote": "Deliberately does not disable updates — keeping the OS patched is the \"don't break Windows\" line.",
+      "content": "# InDows module: windows-update\r\n# Tame Windows Update WITHOUT disabling it: no peer-to-peer downloads, no auto-reboot while you're using\r\n# the PC. Anchor: [InDows:module] specialize-scripts\r\n\r\n$ErrorActionPreference = 'Continue'\r\n$log = 'C:\\Windows\\Temp\\InDows-windows-update.log'\r\nfunction Log([string]$m) { \"{0}  {1}\" -f (Get-Date -Format 'o'), $m | Add-Content -Path $log }\r\nfunction RegDword([string]$p, [string]$n, [int]$v) {\r\n    New-Item -Path $p -Force -ErrorAction SilentlyContinue | Out-Null\r\n    New-ItemProperty -Path $p -Name $n -Value $v -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null\r\n}\r\n\r\nLog '=== windows-update start ==='\r\n# Delivery Optimization: download from Microsoft only (0 = no LAN/Internet peer sharing)\r\nRegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization' 'DODownloadMode' 0\r\n# Never auto-reboot while a user is signed in\r\nRegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU' 'NoAutoRebootWithLoggedOnUsers' 1\r\nLog '=== windows-update done ==='",
+      "tweaks": [
+        {
+          "id": "delivery-optimization-download-from-micr",
+          "label": "Delivery Optimization: download from Microsoft only (0 = no LAN/Internet peer sharing)",
+          "risk": "advanced",
+          "default": true,
+          "content": "RegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization' 'DODownloadMode' 0",
+          "description": "Turns off peer-to-peer update sharing, so updates download only from Microsoft rather than from or to other PCs on your network or the internet. When on, your PC also stops uploading update files to other machines."
+        },
+        {
+          "id": "never-auto-reboot-while-a-user-is-signed",
+          "label": "Never auto-reboot while a user is signed in",
+          "risk": "advanced",
+          "default": true,
+          "content": "RegDword 'HKLM:\\SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU' 'NoAutoRebootWithLoggedOnUsers' 1",
+          "description": "Stops Windows Update from automatically restarting the PC while someone is signed in. When on, updates wait for you to restart yourself instead of forcing a reboot in the middle of your work."
+        }
+      ],
+      "params": []
+    }
+  ]
+}

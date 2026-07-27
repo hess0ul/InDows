@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>indows-gui</AssemblyName>
+    <RootNamespace>InDows.Gui</RootNamespace>
+    <Description>InDows desktop UI: configure and build the install media, and restore a ReDows backup.</Description>
+    <ApplicationIcon>indows.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <!-- The app icon: embedded in the .exe (ApplicationIcon above) and available as a WPF resource so the window can set it. -->
+  <ItemGroup>
+    <Resource Include="indows.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\InDows.Core\InDows.Core.csproj" />
+    <ProjectReference Include="..\InDows.Providers.Windows\InDows.Providers.Windows.csproj" />
+  </ItemGroup>
+
+  <!-- The bundled module catalog + the base autounattend.xml the Build screen grafts modules onto. -->
+  <ItemGroup>
+    <Content Include="data\modules.catalog.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="data\autounattend.base.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

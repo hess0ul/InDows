@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/InDows.Core/InDows.Core.csproj" />
+    <Project Path="src/InDows.Gui/InDows.Gui.csproj" />
+    <Project Path="src/InDows.Providers.Windows/InDows.Providers.Windows.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/InDows.Gui.Tests/InDows.Gui.Tests.csproj" />
+  </Folder>
+</Solution>

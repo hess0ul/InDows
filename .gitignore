@@ -30,3 +30,10 @@ desktop.ini
 *.tmp
 *.bak
 /scratch/
+
+# --- .NET build output (the app sources live here since 2026-07-27) ---
+bin/
+obj/
+publish/
+dist/
+*.user

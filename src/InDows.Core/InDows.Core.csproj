@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>InDows engine: models and contracts, no Windows APIs. Shared by every facade.</Description>
+  </PropertyGroup>
+
+</Project>

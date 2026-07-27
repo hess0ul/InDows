@@ -1,0 +1,554 @@
+<UserControl x:Class="InDows.Gui.Views.BuildView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <!-- "Drawer" footer: a full-width strip flush under a module card (which drops its bottom corners so
+             the two read as one shape), showing "N options" + a chevron. Clicking it unfolds the settings. -->
+        <Style x:Key="DrawerToggle" TargetType="ToggleButton">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Margin" Value="0,-1,0,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="Strip" Height="26" Background="{StaticResource App.Card}"
+                                BorderBrush="{StaticResource App.Border}" BorderThickness="1,1,1,1"
+                                CornerRadius="0,0,6,6">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock x:Name="Glyph" Text="&#x25BE;" FontSize="10"
+                                           Foreground="{StaticResource App.Muted}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding DrawerLabel}" FontSize="11"
+                                           Foreground="{StaticResource App.Muted}" Margin="7,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Strip" Property="Background" Value="{StaticResource App.Surface}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Glyph" Property="Text" Value="&#x25B4;"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="26,22" MaxWidth="820" HorizontalAlignment="Left">
+            <TextBlock Text="Build the install media" FontSize="18" FontWeight="SemiBold"/>
+            <TextBlock Foreground="{StaticResource App.Muted}" Margin="0,4,0,18"
+                       Text="Pick the mode, then tick the tweaks you want. This step is the selection; generating the autounattend.xml comes next."/>
+
+            <!-- Mode -->
+            <TextBlock Text="Mode" FontWeight="SemiBold" Margin="0,0,0,8"/>
+            <RadioButton Content="Clean install" GroupName="mode" Margin="0,0,0,6"
+                         IsChecked="{Binding Mode, Converter={StaticResource EnumBool}, ConverterParameter=Clean, Mode=TwoWay}"/>
+            <RadioButton Content="Clean install + ReDows profile" GroupName="mode" Margin="0,0,0,6"
+                         IsChecked="{Binding Mode, Converter={StaticResource EnumBool}, ConverterParameter=CleanWithProfile, Mode=TwoWay}"/>
+            <RadioButton Content="Full restore" GroupName="mode" Margin="0,0,0,18"
+                         IsChecked="{Binding Mode, Converter={StaticResource EnumBool}, ConverterParameter=FullRestore, Mode=TwoWay}"/>
+
+            <!-- ReDows profile (M2/M3): its apps are added to the generated winget catalog -->
+            <StackPanel Margin="0,0,0,18" Visibility="{Binding RequiresProfile, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="ReDows profile" FontWeight="SemiBold" Margin="0,0,0,2"/>
+                <TextBlock Foreground="{StaticResource App.Muted}" FontSize="12" Margin="0,0,0,6"
+                           Text="Its apps get installed alongside the base essentials, and the settings it captured tick the matching modules below."/>
+                <Grid Margin="0,0,0,6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Background="{StaticResource App.Surface}" CornerRadius="6"
+                            BorderBrush="{StaticResource App.Border}" BorderThickness="1">
+                        <TextBox Text="{Binding ProfileFolder, Mode=OneWay}" IsReadOnly="True" VerticalContentAlignment="Center"
+                                 Background="Transparent" BorderThickness="0" Foreground="{StaticResource App.Muted}" Padding="8,6"/>
+                    </Border>
+                    <Button Grid.Column="1" Content="Browse..." Style="{StaticResource GhostButton}" Margin="8,0,0,0"
+                            Command="{Binding BrowseProfileCommand}"/>
+                </Grid>
+                <TextBlock Text="{Binding ProfileInfo}" Foreground="{StaticResource App.Good}" TextWrapping="Wrap"/>
+                <TextBlock Text="{Binding ProfileError}" Foreground="#FF9B9B" TextWrapping="Wrap"/>
+            </StackPanel>
+
+            <!-- Apps to install (winget) -->
+            <TextBlock Text="Apps" FontWeight="SemiBold" Margin="0,0,0,2"/>
+            <TextBlock Foreground="{StaticResource App.Muted}" FontSize="12" Margin="0,0,0,6"
+                       Text="Apps to install at first login, on top of the base essentials (Brave + 7-Zip). Search by name and pick the one you want."/>
+
+            <!-- Picked apps, each with a remove button -->
+            <ItemsControl ItemsSource="{Binding Apps}" Margin="0,0,0,6">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="{StaticResource App.Card}" CornerRadius="6" Padding="10,6" Margin="0,0,0,4"
+                                BorderBrush="{StaticResource App.Border}" BorderThickness="1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Name}" Foreground="{StaticResource App.Text}"/>
+                                    <TextBlock Text="{Binding Id}" FontSize="11" FontFamily="Consolas, Cascadia Mono"
+                                               Foreground="{StaticResource App.Muted}"/>
+                                </StackPanel>
+                                <Button Grid.Column="1" Content="&#x1F5D1;" Style="{StaticResource GhostButton}" Padding="9,4"
+                                        ToolTip="Remove" Command="{Binding RemoveCommand}"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- + Add an app (hidden while the search panel is open) -->
+            <Button Content="+ Add an app" HorizontalAlignment="Left" Margin="0,0,0,18"
+                    Command="{Binding StartAddAppCommand}">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsAddingApp}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+
+            <!-- Search + pick panel -->
+            <Border Visibility="{Binding IsAddingApp, Converter={StaticResource BoolToVis}}" Margin="0,0,0,18"
+                    Background="{StaticResource App.Surface}" CornerRadius="8" Padding="12"
+                    BorderBrush="{StaticResource App.Border}" BorderThickness="1">
+                <StackPanel>
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Background="{StaticResource App.Card}" CornerRadius="6"
+                                BorderBrush="{StaticResource App.Border}" BorderThickness="1">
+                            <TextBox Text="{Binding AppSearchQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     Background="Transparent" BorderThickness="0" Foreground="{StaticResource App.Text}"
+                                     Padding="8,6" VerticalContentAlignment="Center" ToolTip="App name, e.g. firefox">
+                                <TextBox.InputBindings>
+                                    <KeyBinding Key="Enter" Command="{Binding SearchAppsCommand}"/>
+                                </TextBox.InputBindings>
+                            </TextBox>
+                        </Border>
+                        <Button Grid.Column="1" Content="Search" Margin="8,0,0,0" Command="{Binding SearchAppsCommand}"
+                                Style="{StaticResource GhostButton}" Background="{StaticResource App.Accent}" Foreground="#0B0E11"/>
+                        <Button Grid.Column="2" Content="Cancel" Margin="8,0,0,0"
+                                Style="{StaticResource GhostButton}" Command="{Binding CancelAddAppCommand}"/>
+                    </Grid>
+                    <TextBlock Text="Searching…" Foreground="{StaticResource App.Muted}" Margin="0,2,0,0"
+                               Visibility="{Binding Searching, Converter={StaticResource BoolToVis}}"/>
+                    <TextBlock Text="{Binding SearchError}" Foreground="#FF9B9B" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                    <!-- Results: click one to add it -->
+                    <ItemsControl ItemsSource="{Binding AppSearchResults}" Margin="0,4,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Style="{StaticResource RowButton}"
+                                        Command="{Binding DataContext.PickAppCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Name}" Foreground="{StaticResource App.Text}"/>
+                                        <TextBlock Text="{Binding Id}" FontSize="11" FontFamily="Consolas, Cascadia Mono"
+                                                   Foreground="{StaticResource App.Muted}"/>
+                                    </StackPanel>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- Tweaks -->
+            <TextBlock Text="Tweaks" FontWeight="SemiBold" Margin="0,0,0,2"/>
+            <TextBlock Foreground="{StaticResource App.Muted}" Margin="0,0,0,10" FontSize="12"
+                       Text="Curated modules grouped by area. Green = safe · yellow = changes behaviour · red = opt-in, can affect security."/>
+
+            <!-- Error -->
+            <Border Background="#3A2A2A" CornerRadius="6" Padding="12,10" Margin="0,0,0,10">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Visible"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Error}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <TextBlock Text="{Binding Error}" Foreground="#FF9B9B" TextWrapping="Wrap"/>
+            </Border>
+
+            <!-- Categorised checklist -->
+            <ItemsControl ItemsSource="{Binding Categories}" Margin="0,0,0,16">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="0,0,0,14">
+                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13"
+                                       Foreground="{StaticResource App.Accent}" Margin="0,0,0,6"/>
+                            <!-- Advanced gate: the disclaimer must be accepted before its modules show. -->
+                            <Border Visibility="{Binding ShowDisclaimer, Converter={StaticResource BoolToVis}}"
+                                    Background="#3A2A2A" CornerRadius="6" Padding="14,12" Margin="0,0,0,4"
+                                    BorderBrush="#E86A6A" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="⚠️ Advanced settings — read this first" FontWeight="SemiBold"
+                                               Foreground="#FFB4B4" Margin="0,0,0,6"/>
+                                    <TextBlock Foreground="{StaticResource App.Muted}" TextWrapping="Wrap" Margin="0,0,0,10"
+                                               Text="These can weaken your security, erase a disk, or depend on your exact hardware. They are provided as-is: you use them entirely at your own risk. InDows and its authors accept no responsibility for any data loss, security issue, or damage that results. Only enable what you fully understand."/>
+                                    <Button Content="I understand and accept the risks" HorizontalAlignment="Left"
+                                            Style="{StaticResource GhostButton}" Command="{Binding AcceptCommand}"/>
+                                </StackPanel>
+                            </Border>
+                            <ItemsControl ItemsSource="{Binding Modules}"
+                                          Visibility="{Binding ShowModules, Converter={StaticResource BoolToVis}}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="0,0,0,6">
+                                            <Border Background="{StaticResource App.Card}" Padding="12,9"
+                                                    BorderBrush="{StaticResource App.Border}" BorderThickness="1">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="CornerRadius" Value="6"/>
+                                                        <Style.Triggers>
+                                                            <!-- Square the bottom so the drawer footer sits flush against it. -->
+                                                            <DataTrigger Binding="{Binding HasDrawer}" Value="True">
+                                                                <Setter Property="CornerRadius" Value="6,6,0,0"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <StackPanel>
+                                                    <!-- Tri-state module checkbox (all / some / none) + hover panel. -->
+                                                    <CheckBox IsThreeState="True" VerticalContentAlignment="Top"
+                                                              IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                              ToolTipService.InitialShowDelay="300" ToolTipService.ShowDuration="60000"
+                                                              ToolTipService.BetweenShowDelay="0" ToolTipService.Placement="Right">
+                                                        <CheckBox.ToolTip>
+                                                            <ToolTip Background="Transparent" BorderThickness="0" Padding="0" HasDropShadow="False">
+                                                                <Border Background="{StaticResource App.Surface}" CornerRadius="8" Padding="14,12" MaxWidth="340"
+                                                                        BorderBrush="{StaticResource App.Border}" BorderThickness="1">
+                                                                    <StackPanel>
+                                                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="{StaticResource App.Text}"/>
+                                                                            <Border CornerRadius="4" Padding="6,1" Margin="10,0,0,0" VerticalAlignment="Center"
+                                                                                    Background="{Binding Risk, Converter={StaticResource RiskBrush}}">
+                                                                                <TextBlock Text="{Binding RiskLabel}" FontSize="10" FontWeight="SemiBold" Foreground="#0B0E11"/>
+                                                                            </Border>
+                                                                        </StackPanel>
+                                                                        <TextBlock Text="WHAT IT DOES" FontSize="10" FontWeight="Bold"
+                                                                                   Foreground="{StaticResource App.Muted}" Margin="0,0,0,2"/>
+                                                                        <TextBlock Text="{Binding Description}" TextWrapping="Wrap"
+                                                                                   Foreground="{StaticResource App.Text}" Margin="0,0,0,9"/>
+                                                                        <TextBlock Text="WHY" FontSize="10" FontWeight="Bold"
+                                                                                   Foreground="{StaticResource App.Muted}" Margin="0,0,0,2"/>
+                                                                        <TextBlock Text="{Binding Why}" TextWrapping="Wrap"
+                                                                                   Foreground="{StaticResource App.Text}" Margin="0,0,0,9"/>
+                                                                        <TextBlock Text="RISK" FontSize="10" FontWeight="Bold"
+                                                                                   Foreground="{StaticResource App.Muted}" Margin="0,0,0,2"/>
+                                                                        <TextBlock Text="{Binding RiskNote}" TextWrapping="Wrap" Foreground="{StaticResource App.Text}"/>
+                                                                    </StackPanel>
+                                                                </Border>
+                                                            </ToolTip>
+                                                        </CheckBox.ToolTip>
+                                                        <StackPanel Margin="4,0,0,0">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                                                                <Border CornerRadius="4" Padding="6,1" Margin="10,0,0,0" VerticalAlignment="Center"
+                                                                        Background="{Binding Risk, Converter={StaticResource RiskBrush}}">
+                                                                    <TextBlock Text="{Binding RiskLabel}" FontSize="10" FontWeight="SemiBold" Foreground="#0B0E11"/>
+                                                                </Border>
+                                                            </StackPanel>
+                                                            <TextBlock Text="{Binding Description}" TextWrapping="Wrap" FontSize="12"
+                                                                       Foreground="{StaticResource App.Muted}" Margin="0,3,0,0"/>
+                                                        </StackPanel>
+                                                    </CheckBox>
+
+                                                    <!-- Individual settings, shown when the module is unfolded. -->
+                                                    <ItemsControl ItemsSource="{Binding Tweaks}" Margin="26,9,0,2"
+                                                                  Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVis}}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" Margin="0,0,0,5"
+                                                                          VerticalContentAlignment="Center"
+                                                                          ToolTipService.InitialShowDelay="300" ToolTipService.ShowDuration="60000"
+                                                                          ToolTipService.BetweenShowDelay="0" ToolTipService.Placement="Right">
+                                                                    <CheckBox.ToolTip>
+                                                                        <ToolTip Background="Transparent" BorderThickness="0" Padding="0" HasDropShadow="False">
+                                                                            <Border Background="{StaticResource App.Surface}" CornerRadius="8" Padding="12,10" MaxWidth="420"
+                                                                                    BorderBrush="{StaticResource App.Border}" BorderThickness="1">
+                                                                                <StackPanel>
+                                                                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                                                                        <TextBlock Text="{Binding Label}" FontWeight="SemiBold" Foreground="{StaticResource App.Text}"/>
+                                                                                        <Border CornerRadius="4" Padding="6,1" Margin="10,0,0,0" VerticalAlignment="Center"
+                                                                                                Background="{Binding Risk, Converter={StaticResource RiskBrush}}">
+                                                                                            <TextBlock Text="{Binding RiskLabel}" FontSize="10" FontWeight="SemiBold" Foreground="#0B0E11"/>
+                                                                                        </Border>
+                                                                                    </StackPanel>
+                                                                                    <TextBlock Text="{Binding Description}" TextWrapping="Wrap" FontSize="12"
+                                                                                               Foreground="{StaticResource App.Text}" Margin="0,0,0,9" LineHeight="17"
+                                                                                               Visibility="{Binding HasDescription, Converter={StaticResource BoolToVis}}"/>
+                                                                                    <TextBlock Text="APPLIES" FontSize="10" FontWeight="Bold"
+                                                                                               Foreground="{StaticResource App.Muted}" Margin="0,0,0,3"/>
+                                                                                    <TextBlock Text="{Binding Content}" TextWrapping="Wrap" FontSize="11"
+                                                                                               FontFamily="Consolas, Cascadia Mono" Foreground="{StaticResource App.Muted}"/>
+                                                                                </StackPanel>
+                                                                            </Border>
+                                                                        </ToolTip>
+                                                                    </CheckBox.ToolTip>
+                                                                    <StackPanel Orientation="Horizontal">
+                                                                        <TextBlock Text="{Binding Label}" Foreground="{StaticResource App.Text}"/>
+                                                                        <Border CornerRadius="4" Padding="6,1" Margin="10,0,0,0" VerticalAlignment="Center"
+                                                                                Background="{Binding Risk, Converter={StaticResource RiskBrush}}">
+                                                                            <TextBlock Text="{Binding RiskLabel}" FontSize="10" FontWeight="SemiBold" Foreground="#0B0E11"/>
+                                                                        </Border>
+                                                                    </StackPanel>
+                                                                </CheckBox>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+
+                                                    <!-- Parameters: fields to fill this module's placeholders, shown when unfolded. -->
+                                                    <ItemsControl ItemsSource="{Binding Params}" Margin="26,7,0,2"
+                                                                  Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVis}}">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <StackPanel Margin="0,0,0,9">
+                                                                    <TextBlock Text="{Binding Label}" FontSize="12"
+                                                                               Foreground="{StaticResource App.Muted}" Margin="0,0,0,3" TextWrapping="Wrap"/>
+                                                                    <!-- Free text -->
+                                                                    <Border Visibility="{Binding IsText, Converter={StaticResource BoolToVis}}"
+                                                                            Background="{StaticResource App.Surface}" CornerRadius="6" HorizontalAlignment="Left"
+                                                                            BorderBrush="{StaticResource App.Border}" BorderThickness="1">
+                                                                        <TextBox Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                                 Background="Transparent" BorderThickness="0" Foreground="{StaticResource App.Text}"
+                                                                                 Padding="8,5" MinWidth="260"/>
+                                                                    </Border>
+                                                                    <!-- Masked password -->
+                                                                    <Border Visibility="{Binding IsPassword, Converter={StaticResource BoolToVis}}"
+                                                                            Background="{StaticResource App.Surface}" CornerRadius="6" HorizontalAlignment="Left"
+                                                                            BorderBrush="{StaticResource App.Border}" BorderThickness="1">
+                                                                        <PasswordBox PasswordChanged="Param_PasswordChanged"
+                                                                                     Background="Transparent" BorderThickness="0" Foreground="{StaticResource App.Text}"
+                                                                                     Padding="8,5" MinWidth="260"/>
+                                                                    </Border>
+                                                                    <!-- Whole number (digits only) -->
+                                                                    <Border Visibility="{Binding IsNumber, Converter={StaticResource BoolToVis}}"
+                                                                            Background="{StaticResource App.Surface}" CornerRadius="6" HorizontalAlignment="Left"
+                                                                            BorderBrush="{StaticResource App.Border}" BorderThickness="1">
+                                                                        <TextBox Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                                 PreviewTextInput="Number_PreviewTextInput"
+                                                                                 Background="Transparent" BorderThickness="0" Foreground="{StaticResource App.Text}"
+                                                                                 Padding="8,5" MinWidth="90" HorizontalAlignment="Left"/>
+                                                                    </Border>
+                                                                    <!-- File path + Browse -->
+                                                                    <Grid Visibility="{Binding IsFile, Converter={StaticResource BoolToVis}}" HorizontalAlignment="Left">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="Auto"/>
+                                                                            <ColumnDefinition Width="Auto"/>
+                                                                        </Grid.ColumnDefinitions>
+                                                                        <Border Grid.Column="0" Background="{StaticResource App.Surface}" CornerRadius="6"
+                                                                                BorderBrush="{StaticResource App.Border}" BorderThickness="1">
+                                                                            <TextBox Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                                     Background="Transparent" BorderThickness="0" Foreground="{StaticResource App.Text}"
+                                                                                     Padding="8,5" MinWidth="260"/>
+                                                                        </Border>
+                                                                        <Button Grid.Column="1" Content="Browse…" Margin="8,0,0,0" Style="{StaticResource GhostButton}"
+                                                                                Padding="12,5" Click="BrowseFile_Click"/>
+                                                                    </Grid>
+                                                                    <!-- Dropdown -->
+                                                                    <ComboBox Visibility="{Binding IsChoice, Converter={StaticResource BoolToVis}}"
+                                                                              ItemsSource="{Binding Options}" SelectedValuePath="Value"
+                                                                              SelectedValue="{Binding Value, Mode=TwoWay}" MinWidth="260"
+                                                                              HorizontalAlignment="Left">
+                                                                        <ComboBox.ItemTemplate>
+                                                                            <DataTemplate>
+                                                                                <TextBlock Text="{Binding Label}" Foreground="{StaticResource App.Text}"/>
+                                                                            </DataTemplate>
+                                                                        </ComboBox.ItemTemplate>
+                                                                    </ComboBox>
+                                                                    <!-- Custom values: two fields (shown when "Custom…" is picked) -->
+                                                                    <StackPanel Visibility="{Binding IsCustom, Converter={StaticResource BoolToVis}}" Margin="0,6,0,0">
+                                                                        <TextBlock Text="Primary" FontSize="11" Foreground="{StaticResource App.Muted}" Margin="0,0,0,2"/>
+                                                                        <Border Background="{StaticResource App.Surface}" CornerRadius="6" HorizontalAlignment="Left"
+                                                                                BorderBrush="{StaticResource App.Border}" BorderThickness="1">
+                                                                            <TextBox Text="{Binding CustomPrimary, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                                     Background="Transparent" BorderThickness="0" Foreground="{StaticResource App.Text}"
+                                                                                     Padding="8,5" MinWidth="260" ToolTip="e.g. 9.9.9.9"/>
+                                                                        </Border>
+                                                                        <TextBlock Text="Secondary (optional)" FontSize="11" Foreground="{StaticResource App.Muted}" Margin="0,6,0,2"/>
+                                                                        <Border Background="{StaticResource App.Surface}" CornerRadius="6" HorizontalAlignment="Left"
+                                                                                BorderBrush="{StaticResource App.Border}" BorderThickness="1">
+                                                                            <TextBox Text="{Binding CustomSecondary, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                                     Background="Transparent" BorderThickness="0" Foreground="{StaticResource App.Text}"
+                                                                                     Padding="8,5" MinWidth="260" ToolTip="e.g. 149.112.112.112"/>
+                                                                        </Border>
+                                                                    </StackPanel>
+                                                                </StackPanel>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                    <!-- Disk partition editor: the bespoke drawer for the gated `disk` module. -->
+                                                    <StackPanel Margin="26,9,0,2">
+                                                        <StackPanel.Style>
+                                                            <Style TargetType="StackPanel">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                <Style.Triggers>
+                                                                    <MultiDataTrigger>
+                                                                        <MultiDataTrigger.Conditions>
+                                                                            <Condition Binding="{Binding IsDiskEditor}" Value="True"/>
+                                                                            <Condition Binding="{Binding IsExpanded}" Value="True"/>
+                                                                        </MultiDataTrigger.Conditions>
+                                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                                    </MultiDataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </StackPanel.Style>
+                                                        <StackPanel DataContext="{Binding DiskEditor}">
+                                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                                                <TextBlock Text="Target disk #" VerticalAlignment="Center" FontSize="12"
+                                                                           Foreground="{StaticResource App.Muted}" Margin="0,0,6,0"/>
+                                                                <Border Background="{StaticResource App.Surface}" CornerRadius="6"
+                                                                        BorderBrush="{StaticResource App.Border}" BorderThickness="1">
+                                                                    <TextBox Text="{Binding DiskIdText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                             Background="Transparent" BorderThickness="0" Foreground="{StaticResource App.Text}"
+                                                                             Padding="8,4" MinWidth="42"/>
+                                                                </Border>
+                                                                <CheckBox IsChecked="{Binding WipeDisk, Mode=TwoWay}" Content="Wipe this disk first"
+                                                                          Foreground="{StaticResource App.Text}" VerticalAlignment="Center" Margin="16,0,0,0"/>
+                                                            </StackPanel>
+                                                            <TextBlock Text="&#x26A0; Wiping erases everything on the target disk. Be sure the disk number is right — unplug other disks if unsure."
+                                                                       Foreground="#E8A54A" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                                                            <!-- Column headers -->
+                                                            <Grid Margin="0,0,0,3">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="92"/>
+                                                                    <ColumnDefinition Width="66"/>
+                                                                    <ColumnDefinition Width="78"/>
+                                                                    <ColumnDefinition Width="*" MinWidth="70"/>
+                                                                    <ColumnDefinition Width="44"/>
+                                                                    <ColumnDefinition Width="62"/>
+                                                                    <ColumnDefinition Width="30"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Grid.Column="0" Text="Type" FontSize="10" Foreground="{StaticResource App.Muted}"/>
+                                                                <TextBlock Grid.Column="1" Text="Size MB" FontSize="10" Foreground="{StaticResource App.Muted}"/>
+                                                                <TextBlock Grid.Column="2" Text="Format" FontSize="10" Foreground="{StaticResource App.Muted}"/>
+                                                                <TextBlock Grid.Column="3" Text="Label" FontSize="10" Foreground="{StaticResource App.Muted}"/>
+                                                                <TextBlock Grid.Column="4" Text="Ltr" FontSize="10" Foreground="{StaticResource App.Muted}"/>
+                                                                <TextBlock Grid.Column="5" Text="Install" FontSize="10" Foreground="{StaticResource App.Muted}"/>
+                                                            </Grid>
+                                                            <!-- Partition rows -->
+                                                            <ItemsControl ItemsSource="{Binding Partitions}">
+                                                                <ItemsControl.ItemTemplate>
+                                                                    <DataTemplate>
+                                                                        <Grid Margin="0,0,0,4">
+                                                                            <Grid.ColumnDefinitions>
+                                                                                <ColumnDefinition Width="92"/>
+                                                                                <ColumnDefinition Width="66"/>
+                                                                                <ColumnDefinition Width="78"/>
+                                                                                <ColumnDefinition Width="*" MinWidth="70"/>
+                                                                                <ColumnDefinition Width="44"/>
+                                                                                <ColumnDefinition Width="62"/>
+                                                                                <ColumnDefinition Width="30"/>
+                                                                            </Grid.ColumnDefinitions>
+                                                                            <ComboBox Grid.Column="0" Margin="0,0,4,0" ItemsSource="{Binding TypeOptions}"
+                                                                                      SelectedItem="{Binding Type, Mode=TwoWay}"/>
+                                                                            <Border Grid.Column="1" Margin="0,0,4,0" Background="{StaticResource App.Surface}" CornerRadius="6"
+                                                                                    BorderBrush="{StaticResource App.Border}" BorderThickness="1">
+                                                                                <TextBox Text="{Binding SizeText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                                         Background="Transparent" BorderThickness="0" Foreground="{StaticResource App.Text}"
+                                                                                         Padding="6,4" ToolTip="Size in MB — leave blank to fill the rest of the disk"/>
+                                                                            </Border>
+                                                                            <ComboBox Grid.Column="2" Margin="0,0,4,0" ItemsSource="{Binding FormatOptions}"
+                                                                                      SelectedItem="{Binding Format, Mode=TwoWay}"/>
+                                                                            <Border Grid.Column="3" Margin="0,0,4,0" Background="{StaticResource App.Surface}" CornerRadius="6"
+                                                                                    BorderBrush="{StaticResource App.Border}" BorderThickness="1">
+                                                                                <TextBox Text="{Binding Label, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                                         Background="Transparent" BorderThickness="0" Foreground="{StaticResource App.Text}" Padding="6,4"/>
+                                                                            </Border>
+                                                                            <Border Grid.Column="4" Margin="0,0,4,0" Background="{StaticResource App.Surface}" CornerRadius="6"
+                                                                                    BorderBrush="{StaticResource App.Border}" BorderThickness="1">
+                                                                                <TextBox Text="{Binding Letter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                                         Background="Transparent" BorderThickness="0" Foreground="{StaticResource App.Text}"
+                                                                                         Padding="6,4" MaxLength="1" ToolTip="Drive letter (optional)"/>
+                                                                            </Border>
+                                                                            <CheckBox Grid.Column="5" IsChecked="{Binding InstallHere, Mode=TwoWay}" HorizontalAlignment="Center"
+                                                                                      VerticalAlignment="Center" ToolTip="Install Windows to this partition"/>
+                                                                            <Button Grid.Column="6" Content="&#x1F5D1;" Style="{StaticResource GhostButton}" Padding="6,2"
+                                                                                    ToolTip="Remove partition" Command="{Binding RemoveCommand}"/>
+                                                                        </Grid>
+                                                                    </DataTemplate>
+                                                                </ItemsControl.ItemTemplate>
+                                                            </ItemsControl>
+                                                            <Button Content="+ Add partition" HorizontalAlignment="Left" Margin="0,4,0,0"
+                                                                    Style="{StaticResource GhostButton}" Command="{Binding AddPartitionCommand}"/>
+                                                        </StackPanel>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </Border>
+
+                                            <!-- Drawer handle: only modules with options get the peeking second rectangle. -->
+                                            <ToggleButton Style="{StaticResource DrawerToggle}"
+                                                          IsChecked="{Binding IsExpanded, Mode=TwoWay}"
+                                                          Visibility="{Binding HasDrawer, Converter={StaticResource BoolToVis}}"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- Summary -->
+            <Border Background="{StaticResource App.Card}" CornerRadius="8" Padding="16,12"
+                    BorderBrush="{StaticResource App.Accent}" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Text="Will generate" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                    <TextBlock Text="{Binding Summary}" Foreground="{StaticResource App.Muted}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Generate -->
+            <Button Content="Generate autounattend.xml" HorizontalAlignment="Left" Margin="0,16,0,0"
+                    Style="{StaticResource GhostButton}" Background="{StaticResource App.Accent}" Foreground="#0B0E11"
+                    FontWeight="SemiBold" Command="{Binding GenerateCommand}"/>
+
+            <!-- Placeholder warning (the generated file still holds __VALUES__ to fill in) -->
+            <Border Background="#3A3320" CornerRadius="6" Padding="12,10" Margin="0,10,0,0">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Visible"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding PlaceholderWarning}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <TextBlock Text="{Binding PlaceholderWarning}" Foreground="#E0B341" TextWrapping="Wrap"/>
+            </Border>
+
+            <!-- Preview + save -->
+            <StackPanel Margin="0,14,0,0" Visibility="{Binding HasPreview, Converter={StaticResource BoolToVis}}">
+                <TextBlock Text="Preview" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                <Border Background="{StaticResource App.Surface}" CornerRadius="8"
+                        BorderBrush="{StaticResource App.Border}" BorderThickness="1">
+                    <TextBox Text="{Binding PreviewXml, Mode=OneWay}" IsReadOnly="True" IsReadOnlyCaretVisible="False"
+                             FontFamily="Consolas, Cascadia Mono" FontSize="12" Background="Transparent" BorderThickness="0"
+                             Foreground="{StaticResource App.Text}" Padding="12,10" MaxHeight="320"
+                             VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                             AcceptsReturn="True" TextWrapping="NoWrap"
+                             PreviewMouseWheel="Preview_PreviewMouseWheel"/>
+                </Border>
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <Button Content="Save as..." Style="{StaticResource GhostButton}" Command="{Binding SaveCommand}"/>
+                    <TextBlock Text="{Binding SavedPath}" Foreground="{StaticResource App.Good}"
+                               VerticalAlignment="Center" Margin="12,0,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

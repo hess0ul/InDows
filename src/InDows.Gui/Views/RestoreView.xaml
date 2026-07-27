@@ -1,0 +1,108 @@
+<UserControl x:Class="InDows.Gui.Views.RestoreView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="26,22" MaxWidth="760" HorizontalAlignment="Left">
+            <TextBlock Text="Restore a ReDows backup" FontSize="18" FontWeight="SemiBold"/>
+            <TextBlock Foreground="{StaticResource App.Muted}" Margin="0,4,0,18"
+                       Text="Put your files back after a clean install. Non-destructive: existing files are skipped, never overwritten, and each restored file is verified by hash."/>
+
+            <!-- Backup folder -->
+            <TextBlock Text="Backup folder" FontWeight="SemiBold" Margin="0,0,0,6"/>
+            <Grid Margin="0,0,0,18">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Grid.Column="0" Text="{Binding BackupFolder}" IsReadOnly="True"
+                         VerticalContentAlignment="Center"/>
+                <Button Grid.Column="1" Content="Browse..." Style="{StaticResource GhostButton}" Margin="8,0,0,0"
+                        Command="{Binding BrowseBackupCommand}"/>
+            </Grid>
+
+            <!-- Where files go -->
+            <TextBlock Text="Where to put the files" FontWeight="SemiBold" Margin="0,0,0,8"/>
+            <RadioButton Content="Back to their original locations" GroupName="dest" Margin="0,0,0,6"
+                         IsChecked="{Binding ToOriginalLocations, Mode=TwoWay}"/>
+            <RadioButton Content="Rebuild the tree under a folder I choose" GroupName="dest"
+                         IsChecked="{Binding ToOriginalLocations, Converter={StaticResource Not}, Mode=TwoWay}"/>
+            <Grid Margin="26,8,0,18">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Grid.Column="0" Text="{Binding TargetFolder}" IsReadOnly="True"
+                         IsEnabled="{Binding ToOriginalLocations, Converter={StaticResource Not}}"
+                         VerticalContentAlignment="Center"/>
+                <Button Grid.Column="1" Content="Browse..." Style="{StaticResource GhostButton}" Margin="8,0,0,0"
+                        Command="{Binding BrowseTargetCommand}"/>
+            </Grid>
+
+            <!-- Vault password -->
+            <TextBlock Text="Secrets vault password (optional)" FontWeight="SemiBold" Margin="0,0,0,6"/>
+            <TextBlock Foreground="{StaticResource App.Muted}" FontSize="12" Margin="0,0,0,6"
+                       Text="Only needed to restore the secrets vault. Leave empty to skip it (the encrypted vault stays on disk)."/>
+            <PasswordBox x:Name="VaultPasswordBox" Width="320" HorizontalAlignment="Left"
+                         PasswordChanged="VaultPasswordBox_PasswordChanged" Margin="0,0,0,18"/>
+
+            <!-- Actions -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                <Button Content="Restore" Command="{Binding RunCommand}"/>
+                <Button Content="Cancel" Style="{StaticResource GhostButton}" Margin="10,0,0,0"
+                        Command="{Binding CancelCommand}"/>
+            </StackPanel>
+
+            <!-- Progress -->
+            <StackPanel Visibility="{Binding IsRunning, Converter={StaticResource BoolToVis}}" Margin="0,0,0,14">
+                <ProgressBar IsIndeterminate="True" Height="4" Background="{StaticResource App.Card}"
+                             Foreground="{StaticResource App.Accent}" BorderThickness="0"/>
+                <TextBlock Text="{Binding ProgressText}" Foreground="{StaticResource App.Muted}" FontSize="12" Margin="0,6,0,0"/>
+            </StackPanel>
+
+            <!-- Error -->
+            <Border Background="#3A2A2A" CornerRadius="6" Padding="12,10" Margin="0,0,0,14">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Visible"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Error}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <TextBlock Text="{Binding Error}" Foreground="#FF9B9B"/>
+            </Border>
+
+            <!-- Result -->
+            <Border Background="{StaticResource App.Card}" CornerRadius="8" Padding="16,14"
+                    BorderBrush="{StaticResource App.Border}" BorderThickness="1">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Visible"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Result}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <StackPanel>
+                    <TextBlock Text="Result" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Foreground="{StaticResource App.Muted}" Text="Restored: "/>
+                        <TextBlock Text="{Binding Result.RestoredText}"/>
+                        <TextBlock Foreground="{StaticResource App.Muted}" Text="   Skipped: "/>
+                        <TextBlock Text="{Binding Result.SkippedText}"/>
+                        <TextBlock Foreground="{StaticResource App.Muted}" Text="   Failed: "/>
+                        <TextBlock Text="{Binding Result.FailedText}"/>
+                        <TextBlock Foreground="{StaticResource App.Muted}" Text="   Secrets: "/>
+                        <TextBlock Text="{Binding Result.SecretsText}"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding Result.VerifiedText}" Foreground="{StaticResource App.Muted}"
+                               FontSize="12" Margin="0,8,0,0"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

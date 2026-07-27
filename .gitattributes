@@ -1,0 +1,3 @@
+# Normalise line endings inside the repository so that comparing the private and the
+# published trees shows real differences only.
+* text=auto
